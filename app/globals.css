@@ -1449,3 +1449,24 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-survey__card small { display: block; font-weight: 500; color: var(--gw-muted); font-size: 0.8rem; margin-top: 0.2rem; }
 .gw-survey__card.is-selected small { color: var(--gw-ocean); }
 .gw-survey__panel h3 { margin: 0; }
+
+/* ---------- event form (admin) ---------- */
+
+.gw-evform { display: grid; gap: 1.2rem; max-width: 62rem; }
+.gw-evform-sec { border: 1px solid var(--gw-line); border-radius: 14px; background: #fff; padding: 1.2rem 1.4rem; }
+.gw-evform-sec legend { font-weight: 800; padding: 0 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.gw-evform-num { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--gw-ocean); color: #fff; font-size: 0.8rem; }
+.gw-evform-sec .gw-form__check { display: block; margin: 0.3rem 0; }
+.gw-evform-routes__head { display: grid; grid-template-columns: 1.2fr 1fr 90px 44px 90px 80px 70px 1fr 80px 32px; gap: 0.4rem; font-size: 0.72rem; font-weight: 700; color: var(--gw-muted); margin-bottom: 0.4rem; }
+.gw-evform-routes__row { display: grid; grid-template-columns: 1.2fr 1fr 90px 44px 90px 80px 70px 1fr 80px 32px; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center; }
+.gw-evform-routes__row input, .gw-evform-routes__row select { font: inherit; font-size: 0.82rem; padding: 0.4rem 0.5rem; border: 1px solid var(--gw-line); border-radius: 8px; width: 100%; }
+.gw-evform-prev { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.6rem; }
+.gw-evform-gallery { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.6rem; }
+.gw-evform-thumb { position: relative; }
+.gw-evform-thumb img { height: 72px; border-radius: 8px; display: block; }
+.gw-evform-thumb button { position: absolute; top: -6px; right: -6px; border: 0; background: #8A1C12; color: #fff; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; }
+.gw-evform-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; padding-top: 0.5rem; }
+.gw-badge { display: inline-block; background: var(--gw-gold); color: #fff; border-radius: 999px; padding: 0.25em 1em; font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem; }
+.gw-evgallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 1.5rem; }
+.gw-evgallery img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 12px; }
+@media (max-width: 760px) { .gw-evgallery { grid-template-columns: 1fr 1fr; } }
