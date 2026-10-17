@@ -8,6 +8,7 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 	const [authed, setAuthed] = useState(() => {
 		try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; }
 	});
+	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [err, setErr] = useState("");
 	const [checking, setChecking] = useState(false);
@@ -20,7 +21,7 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 			const res = await fetch("/api/admin-auth", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ password }),
+				body: JSON.stringify({ username, password }),
 			});
 			const json = await res.json();
 			if (json.ok) {
@@ -45,6 +46,15 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 				<h1>GiftWako Admin</h1>
 				<p className="gw-small">Enter the admin password to continue.</p>
 				{err && <p className="gw-admingate__err" role="alert">{err}</p>}
+				<input
+					type="text"
+					value={username}
+					onChange={(e) => setUsername(e.target.value)}
+					placeholder="Username"
+					autoComplete="username"
+					autoFocus
+					required
+				/>
 				<input
 					type="password"
 					value={password}
