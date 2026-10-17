@@ -1,16 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
 import PageBand, { BandButtons } from "@/components/PageBand";
 import PropSearch from "@/components/PropSearch";
+import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Stays", description: "Search accommodation we can arrange across Limpopo and South Africa." };
-
-const sb = createClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
 
 interface Stay {
 	id: number;
@@ -32,7 +27,20 @@ export default async function StaysPage({
 	const { q = "", type = "" } = await searchParams;
 	const needle = q.replace(/[%,()]/g, "").trim();
 
-	let query = sb.from("properties").select("id,name,city,province,type,stars,price,status,owner").order("name").limit(200);
+	const db = supabase();
+	let query = db
+		? db.from("properties").select("id,name,city,province,type,stars,price,status,owner").order("name").limit(200)
+		: null;
+	if (!query) {
+		return (
+			<>
+				<PageBand eyebrow="Stays" title="Find a stay" lead="Hotels, guesthouses, apartments and lodges — tell us which one you like and we will book it for you.">
+					<BandButtons back={{ label: "Back home", href: "/" }} />
+				</PageBand>
+				<section className="gw-section has-global-padding"><div className="gw-wrap"><p className="gw-note">Stay search is not configured yet — WhatsApp us and we will find options.</p></div></section>
+			</>
+		);
+	}
 	if (needle) query = query.or(`name.ilike.%${needle}%,city.ilike.%${needle}%`);
 	if (type) query = query.eq("type", type);
 

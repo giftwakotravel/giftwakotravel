@@ -31,7 +31,9 @@ function Events() {
 	const [edit, setEdit] = useState<Ev | "new" | null>(null);
 
 	const load = useCallback(async () => {
-		const { data, error } = await supabase.from("events").select("*").order("event_date", { ascending: true });
+		const c = supabase();
+		if (!c) { toast("Not connected to the database"); setLoading(false); return; }
+		const { data, error } = await c.from("events").select("*").order("event_date", { ascending: true });
 		if (error) toast(`Load failed: ${error.message}`);
 		setRows((data ?? []) as Ev[]);
 		setLoading(false);
@@ -40,7 +42,9 @@ function Events() {
 	useEffect(() => { void load(); }, [load]);
 
 	const toggle = async (e: Ev) => {
-		const { error } = await supabase.from("events").update({ visible: !e.visible }).eq("id", e.id);
+		const c = supabase();
+		if (!c) { toast("Not connected to the database"); return; }
+		const { error } = await c.from("events").update({ visible: !e.visible }).eq("id", e.id);
 		if (error) { toast(`Update failed: ${error.message}`); return; }
 		setRows((rs) => rs.map((x) => (x.id === e.id ? { ...x, visible: !e.visible } : x)));
 		toast(`${e.title} ${e.visible ? "hidden" : "visible"}`);
@@ -52,7 +56,9 @@ function Events() {
 			body: "This removes the event from the website permanently.",
 			okLabel: "Delete",
 			action: () => {
-				void supabase.from("events").delete().eq("id", e.id).then(({ error }) => {
+				const c = supabase();
+				if (!c) { toast("Not connected to the database"); return; }
+				void c.from("events").delete().eq("id", e.id).then(({ error }) => {
 					if (error) toast(`Delete failed: ${error.message}`);
 					else { setRows((rs) => rs.filter((x) => x.id !== e.id)); toast(`${e.title} deleted`); }
 				});
@@ -125,9 +131,11 @@ function EventForm({ ev, onClose, onSaved }: { ev: Ev | null; onClose: () => voi
 			description: f.description || null,
 			visible: f.visible as boolean,
 		};
+		const c = supabase();
+		if (!c) { toast("Not connected to the database"); setSaving(false); return; }
 		const { error } = ev
-			? await supabase.from("events").update(row).eq("id", ev.id)
-			: await supabase.from("events").insert(row);
+			? await c.from("events").update(row).eq("id", ev.id)
+			: await c.from("events").insert(row);
 		setSaving(false);
 		if (error) { toast(`Save failed: ${error.message}`); return; }
 		toast(`${f.title} ${ev ? "updated" : "created"}`);
@@ -160,10 +168,12 @@ function EventForm({ ev, onClose, onSaved }: { ev: Ev | null; onClose: () => voi
 							if (!file) return;
 							setUploading(true);
 							const fname = `events/${Date.now()}-${file.name.replace(/[^\w.-]+/g, "-")}`;
-							const { error } = await supabase.storage.from("media").upload(fname, file, { upsert: true });
+							const c = supabase();
+							if (!c) { toast("Not connected to the database"); setUploading(false); return; }
+							const { error } = await c.storage.from("media").upload(fname, file, { upsert: true });
 							setUploading(false);
 							if (error) { toast(`Upload failed: ${error.message}`); return; }
-							const { data } = supabase.storage.from("media").getPublicUrl(fname);
+							const { data } = c.storage.from("media").getPublicUrl(fname);
 							set("image", data.publicUrl);
 							toast("Image uploaded");
 						}}

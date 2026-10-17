@@ -59,7 +59,9 @@ function TripRequests() {
 	const load = useCallback(async () => {
 		setLoading(true);
 		setLoadErr(false);
-		const { data, error } = await supabase
+		const c = supabase();
+		if (!c) { setLoadErr(true); setLoading(false); return; }
+		const { data, error } = await c
 			.from("trip_requests")
 			.select("*")
 			.order("created_at", { ascending: false });
@@ -76,7 +78,9 @@ function TripRequests() {
 			body: `This updates the request in the database.`,
 			okLabel: "Update",
 			action: async () => {
-				const { error } = await supabase.from("trip_requests").update({ status }).eq("id", r.id);
+				const c = supabase();
+				if (!c) { toast("Not connected to the database"); return; }
+				const { error } = await c.from("trip_requests").update({ status }).eq("id", r.id);
 				if (error) { toast(`Update failed: ${error.message}`); return; }
 				setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, status } : x)));
 				setSel((s) => (s?.id === r.id ? { ...s, status } : s));

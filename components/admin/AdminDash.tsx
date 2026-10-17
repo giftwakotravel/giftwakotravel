@@ -93,7 +93,9 @@ export default function AdminDash() {
 	// properties are live from Supabase; everything else stays demo for now
 	const [properties, setProperties] = useState<AdminProperty[]>([]);
 	useEffect(() => {
-		void supabase
+		const c = supabase();
+		if (!c) { setProperties(D_PROPERTIES); return; }
+		void c
 			.from("properties")
 			.select("*")
 			.order("id")
@@ -124,7 +126,9 @@ export default function AdminDash() {
 		properties,
 		setPropStatus: (id, status) => {
 			setProperties((p) => p.map((x) => (x.id === id ? { ...x, status } : x)));
-			void supabase.from("properties").update({ status }).eq("id", id)
+			const c = supabase();
+			if (!c) { toast("Not connected to the database"); return; }
+			void c.from("properties").update({ status }).eq("id", id)
 				.then(({ error }) => { if (error) toast(`Status save failed: ${error.message}`); });
 		},
 		owners,

@@ -18,7 +18,9 @@ export default function EventsExplore() {
 	const [events, setEvents] = useState<Ev[] | null>(null);
 
 	useEffect(() => {
-		void supabase
+		const c = supabase();
+		if (!c) { setEvents([]); return; }
+		void c
 			.from("events")
 			.select("id,title,location,event_date,price,image,description,visible")
 			.order("event_date", { ascending: true })

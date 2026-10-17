@@ -1,21 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import CtaBand from "@/components/CtaBand";
 import PageBand, { BandButtons } from "@/components/PageBand";
+import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-const sb = createClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
-
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
-	if (!/^\d+$/.test(id)) notFound();
+	const db = supabase();
+	if (!/^\d+$/.test(id) || !db) notFound();
 
-	const { data: ev } = await sb
+	const { data: ev } = await db
 		.from("events")
 		.select("*")
 		.eq("id", id)
