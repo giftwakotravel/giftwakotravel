@@ -105,7 +105,7 @@ export function formToRow(f: EvForm, status: string) {
 const EMPTY_ROUTE: EvRoute = { name: "", pickup: "", time: "", ret: true, transport_type: "", price: "", seats: "", provider: "", status: "Active" };
 
 export default function EventForm({ id, onDone }: { id: number | "new"; onDone: () => void }) {
-	const [f, setF] = useState<EvForm | null>(null);
+	const [f, setF] = useState<EvForm | null>(() => (id === "new" ? evToForm(null) : null));
 	const [evId, setEvId] = useState<number | null>(id === "new" ? null : id);
 	const [loaded, setLoaded] = useState(id === "new");
 	const [saving, setSaving] = useState("");
