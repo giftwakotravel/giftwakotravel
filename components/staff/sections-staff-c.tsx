@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bars, Dr, fmtR, Panel, Pill, SearchInput, SubTabs, Table } from "@/components/admin/ui";
 import { useStaff, type StaffSection } from "@/components/staff/ctx";
 import { toast } from "@/components/Toaster";
 import { S_ATTENDANCE, S_DOCS, S_SCHEDULE, type StaffDoc } from "@/lib/staff-data";
+import { ROLE_DEPARTMENTS, RoleOptions } from "@/lib/staff-roles";
+import { supabase } from "@/lib/supabase";
 
 export default function StaffSectionsC({ section }: { section: StaffSection }) {
 	switch (section) {
@@ -12,6 +14,7 @@ export default function StaffSectionsC({ section }: { section: StaffSection }) {
 		case "staff-documents": return <Documents />;
 		case "staff-communication": return <Communication />;
 		case "staff-reports": return <StaffReports />;
+		case "staff-roles": return <RolesAccess />;
 		case "staff-settings": return <StaffSettings />;
 		default: return null;
 	}
@@ -253,5 +256,92 @@ function StaffSettings() {
 				<button className="gw-form__submit" onClick={() => toast("Preferences saved (demo)")}>Save</button>
 			</Panel>
 		</div>
+	);
+}
+
+/* ============================ ROLES & ACCESS ============================ */
+
+interface RoleAssign { id: number; email: string; role: string; department: string; created_at: string }
+
+function RolesAccess() {
+	const { confirm } = useStaff();
+	const [rows, setRows] = useState<RoleAssign[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [email, setEmail] = useState("");
+	const [role, setRole] = useState("");
+
+	const load = useCallback(async () => {
+		const c = supabase();
+		if (!c) { setLoading(false); return; }
+		const { data } = await c.from("staff_roles").select("*").order("created_at", { ascending: false });
+		setRows((data ?? []) as RoleAssign[]);
+		setLoading(false);
+	}, []);
+	useEffect(() => { void load(); }, [load]);
+
+	const deptOf = (r: string) => ROLE_DEPARTMENTS.find((d) => d.roles.includes(r))?.dept ?? "";
+
+	const add = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!email.includes("@")) { toast("Enter a valid email"); return; }
+		if (!role) { toast("Choose a role"); return; }
+		const c = supabase();
+		if (!c) { toast("Not connected to the database"); return; }
+		const { error } = await c.from("staff_roles").insert({ email: email.trim(), role, department: deptOf(role) });
+		if (error) { toast(`Save failed: ${error.message}`); return; }
+		setEmail(""); setRole("");
+		toast(`${role} assigned to ${email}`);
+		void load();
+	};
+
+	const del = (r: RoleAssign) =>
+		confirm({
+			title: `Remove ${r.email}'s ${r.role} role?`,
+			body: "They will lose this role assignment.",
+			okLabel: "Remove",
+			action: () => {
+				const c = supabase();
+				if (!c) { toast("Not connected to the database"); return; }
+				void c.from("staff_roles").delete().eq("id", r.id).then(({ error }) => {
+					if (error) toast(`Remove failed: ${error.message}`);
+					else { setRows((rs) => rs.filter((x) => x.id !== r.id)); toast("Role removed"); }
+				});
+			},
+		});
+
+	return (
+		<>
+			<Panel title="Assign a role" sub="Give an email access to a staff role">
+				<form className="gw-form__grid" onSubmit={add}>
+					<div className="gw-form__field"><label className="gw-form__label">Email *</label>
+						<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@giftwakotravel.co.za" required />
+					</div>
+					<div className="gw-form__field"><label className="gw-form__label">Role *</label>
+						<select value={role} onChange={(e) => setRole(e.target.value)} required>
+							<option value="">Select a role…</option><RoleOptions />
+						</select>
+					</div>
+					<div className="gw-form__field" style={{ alignSelf: "end" }}>
+						<button className="gw-btn gw-btn--gold" type="submit">Assign role</button>
+					</div>
+				</form>
+			</Panel>
+			<Panel title="Role assignments">
+				{loading ? <p className="gw-small">Loading…</p> : (
+					<Table
+						cols={[
+							{ key: "email", label: "Email", render: (r: RoleAssign) => <strong>{r.email}</strong>, sortKey: (r) => r.email },
+							{ key: "role", label: "Role", render: (r) => r.role, sortKey: (r) => r.role },
+							{ key: "dept", label: "Department", render: (r) => r.department },
+							{ key: "act", label: "", render: (r) => (
+								<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" style={{ color: "#8A1C12" }} onClick={() => del(r)}>Remove</button>
+							) },
+						]}
+						rows={rows}
+						empty="No role assignments yet — assign an email above."
+					/>
+				)}
+			</Panel>
+		</>
 	);
 }

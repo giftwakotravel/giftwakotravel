@@ -5,6 +5,7 @@ import { Dr, Drawer, Panel, Pill, SearchInput, SubTabs, Table } from "@/componen
 import { useStaff, type StaffSection } from "@/components/staff/ctx";
 import { toast } from "@/components/Toaster";
 import { S_DEPARTMENTS, S_DOCS, S_LEAVE, type Driver, type Guide, type Registration, type StaffMember } from "@/lib/staff-data";
+import { RoleOptions } from "@/lib/staff-roles";
 
 export default function StaffSectionsA({ section }: { section: StaffSection }) {
 	switch (section) {
@@ -215,7 +216,7 @@ function RegForm({ onClose }: { onClose: () => void }) {
 					<h4>Employment information</h4>
 					<div className="gw-form__grid">
 						<div className="gw-form__field"><label className="gw-form__label">Position applied for</label>
-							<select name="pos"><option>Driver</option><option>Tour Guide</option><option>Bookings Agent</option><option>Other</option></select>
+							<select name="pos"><RoleOptions /><option>Other</option></select>
 						</div>
 						<div className="gw-form__field"><label className="gw-form__label">Department</label>
 							<select name="dept">{S_DEPARTMENTS.map((d) => <option key={d.name}>{d.name}</option>)}</select>

@@ -11,7 +11,7 @@ import {
 export type StaffSection =
 	| "staff-overview" | "staff-registrations" | "staff-employees" | "staff-drivers" | "staff-guides"
 	| "staff-departments" | "staff-vehicles" | "staff-scheduling" | "staff-assignments" | "staff-attendance"
-	| "staff-performance" | "staff-documents" | "staff-communication" | "staff-reports" | "staff-settings";
+	| "staff-performance" | "staff-documents" | "staff-communication" | "staff-reports" | "staff-roles" | "staff-settings";
 
 export const STAFF_SECTIONS: { key: StaffSection; label: string; icon: string }[] = [
 	{ key: "staff-overview", label: "Overview", icon: "▤" },
@@ -28,6 +28,7 @@ export const STAFF_SECTIONS: { key: StaffSection; label: string; icon: string }[
 	{ key: "staff-documents", label: "Documents & Compliance", icon: "◫" },
 	{ key: "staff-communication", label: "Staff Communication", icon: "✆" },
 	{ key: "staff-reports", label: "Reports", icon: "▥" },
+	{ key: "staff-roles", label: "Roles & Access", icon: "⚿" },
 	{ key: "staff-settings", label: "Staff Settings", icon: "⚙" },
 ];
 
