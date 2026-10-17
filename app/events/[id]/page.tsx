@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CtaBand from "@/components/CtaBand";
 import PageBand, { BandButtons } from "@/components/PageBand";
+import EventBooking, { type EvDetail } from "@/components/EventBooking";
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -19,31 +20,32 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
 	if (!ev || ev.visible === false) notFound();
 
-	const planHref = `/plan-a-trip/?${new URLSearchParams({
-		trip_type: "Holiday package",
-		destination_area: `${ev.title}${ev.location ? `, ${ev.location}` : ""}`,
-		...(ev.event_date ? { departure_date: ev.event_date } : {}),
-	}).toString()}`;
+	const dateLabel = ev.event_date
+		? new Date(ev.event_date + "T00:00:00").toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+		: null;
 
 	return (
 		<>
-			<PageBand eyebrow="Events" title={ev.title} lead={[ev.location, ev.event_date].filter(Boolean).join(" · ") || "GiftWako event"}>
-				<BandButtons
-					primary={{ label: "I'm going — book my seat", href: planHref }}
-					outline={{ label: "Ask on WhatsApp", href: `https://wa.me/27706178269?text=${encodeURIComponent(`Hi GiftWako, I'm interested in "${ev.title}"`)}` }}
-					back={{ label: "Back to all events", href: "/#explore" }}
-				/>
+			<PageBand
+				eyebrow="Event"
+				title={ev.title}
+				lead={[ev.featuring ? `Featuring ${ev.featuring}` : null, dateLabel, ev.venue ?? ev.location]
+					.filter(Boolean)
+					.join(" · ")}
+			>
+				<BandButtons back={{ label: "Back to all events", href: "/#explore" }} />
 			</PageBand>
 
 			<section className="gw-section has-global-padding">
 				<div className="gw-wrap">
+					{/* event information */}
 					<div className="gw-evdetail">
 						<div className="gw-evdetail__img">
 							{ev.image ? (
 								/* eslint-disable-next-line @next/next/no-img-element */
 								<img src={ev.image} alt={ev.title} />
 							) : (
-								<span className="gw-evcard__ph" aria-hidden="true">GiftWako event</span>
+								<span className="gw-evcard__ph" aria-hidden="true">Event poster</span>
 							)}
 						</div>
 						<div className="gw-evdetail__body">
@@ -52,15 +54,24 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 							)}
 							{ev.description && <p className="gw-evdetail__desc">{ev.description}</p>}
 							<dl className="gw-evdetail__facts">
-								{ev.location && <><dt>Location</dt><dd>{ev.location}</dd></>}
-								{ev.event_date && <><dt>Date</dt><dd>{new Date(ev.event_date + "T00:00:00").toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</dd></>}
+								{ev.featuring && <><dt>Featuring</dt><dd>{ev.featuring}</dd></>}
+								{dateLabel && <><dt>Date</dt><dd>{dateLabel}</dd></>}
+								{ev.venue && <><dt>Venue</dt><dd>{ev.venue}</dd></>}
+								{ev.location && <><dt>Town / area</dt><dd>{ev.location}</dd></>}
+								<dt>Presented by</dt><dd>{ev.presented_by || "GiftWako Travel"}</dd>
 							</dl>
-							<div className="gw-buttons" style={{ marginTop: "1.2rem" }}>
-								<Link className="gw-btn gw-btn--gold" href={planHref}>Going — request a seat</Link>
-							</div>
-							<p className="gw-small" style={{ marginTop: "0.8rem" }}>Nothing is booked until you accept a written quote.</p>
 						</div>
 					</div>
+
+					{/* booking flow */}
+					<div className="gw-section__head" style={{ marginTop: "2.5rem" }}>
+						<h2>Book your spot</h2>
+						<p className="gw-section__lead">
+							Choose how you want to attend — we confirm ticket prices and availability with the organiser
+							before anything is booked.
+						</p>
+					</div>
+					<EventBooking ev={ev as EvDetail} />
 				</div>
 			</section>
 

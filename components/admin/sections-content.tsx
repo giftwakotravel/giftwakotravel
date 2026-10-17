@@ -11,12 +11,22 @@ export default function ContentSections({ section }: { section: Section }) {
 	return <Events />;
 }
 
+interface Route {
+	name: string;
+	price: string;
+	note: string;
+}
+
 interface Ev {
 	id: number;
 	title: string;
 	location: string | null;
+	venue: string | null;
+	featuring: string | null;
+	presented_by: string | null;
 	event_date: string | null;
 	price: number | null;
+	routes: { name: string; price: number | null; note: string | null }[] | null;
 	image: string | null;
 	description: string | null;
 	visible: boolean;
@@ -108,12 +118,18 @@ function EventForm({ ev, onClose, onSaved }: { ev: Ev | null; onClose: () => voi
 	const [f, setF] = useState({
 		title: ev?.title ?? "",
 		location: ev?.location ?? "",
+		venue: ev?.venue ?? "",
+		featuring: ev?.featuring ?? "",
+		presented_by: ev?.presented_by ?? "",
 		event_date: ev?.event_date ?? "",
 		price: ev?.price?.toString() ?? "",
 		image: ev?.image ?? "",
 		description: ev?.description ?? "",
 		visible: ev?.visible ?? true,
 	});
+	const [routes, setRoutes] = useState<Route[]>(
+		(ev?.routes ?? []).map((r) => ({ name: r.name, price: r.price?.toString() ?? "", note: r.note ?? "" })),
+	);
 	const [saving, setSaving] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
@@ -125,8 +141,16 @@ function EventForm({ ev, onClose, onSaved }: { ev: Ev | null; onClose: () => voi
 		const row = {
 			title: f.title.trim(),
 			location: f.location || null,
+			venue: f.venue || null,
+			featuring: f.featuring || null,
+			presented_by: f.presented_by || null,
 			event_date: f.event_date || null,
 			price: f.price ? Number(f.price) : null,
+			routes: routes.filter((r) => r.name.trim()).map((r) => ({
+				name: r.name.trim(),
+				price: r.price ? Number(r.price) : null,
+				note: r.note || null,
+			})),
 			image: f.image || null,
 			description: f.description || null,
 			visible: f.visible as boolean,
@@ -148,15 +172,30 @@ function EventForm({ ev, onClose, onSaved }: { ev: Ev | null; onClose: () => voi
 			<form className="gw-form" onSubmit={save}>
 				<div className="gw-form__field"><label className="gw-form__label">Title *</label><input value={f.title} onChange={(e) => set("title", e.target.value)} required /></div>
 				<div className="gw-form__grid">
-					<div className="gw-form__field"><label className="gw-form__label">Location</label><input value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Sun City" /></div>
+					<div className="gw-form__field"><label className="gw-form__label">Featuring</label><input value={f.featuring} onChange={(e) => set("featuring", e.target.value)} placeholder="e.g. King Monada" /></div>
+					<div className="gw-form__field"><label className="gw-form__label">Location / town</label><input value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="e.g. Tzaneen" /></div>
+					<div className="gw-form__field"><label className="gw-form__label">Venue</label><input value={f.venue} onChange={(e) => set("venue", e.target.value)} placeholder="e.g. Hayzaview Sports Ground" /></div>
 					<div className="gw-form__field"><label className="gw-form__label">Date</label><input type="date" value={f.event_date} onChange={(e) => set("event_date", e.target.value)} /></div>
-					<div className="gw-form__field"><label className="gw-form__label">Price per person (R)</label><input type="number" min={0} value={f.price} onChange={(e) => set("price", e.target.value)} placeholder="Optional" /></div>
-					<div className="gw-form__field"><label className="gw-form__label">Visible on site</label>
-						<select value={String(f.visible)} onChange={(e) => set("visible", e.target.value === "true")}>
-							<option value="true">Visible</option>
-							<option value="false">Hidden</option>
-						</select>
-					</div>
+					<div className="gw-form__field"><label className="gw-form__label">Ticket price pp (R)</label><input type="number" min={0} value={f.price} onChange={(e) => set("price", e.target.value)} placeholder="Optional" /></div>
+					<div className="gw-form__field"><label className="gw-form__label">Presented by</label><input value={f.presented_by} onChange={(e) => set("presented_by", e.target.value)} placeholder="GiftWako Travel" /></div>
+				</div>
+				<div className="gw-form__field"><label className="gw-form__label">Visible on site</label>
+					<select value={String(f.visible)} onChange={(e) => set("visible", e.target.value === "true")}>
+						<option value="true">Visible</option>
+						<option value="false">Hidden</option>
+					</select>
+				</div>
+				<div className="gw-form__field">
+					<label className="gw-form__label">Transport routes (per person prices)</label>
+					{routes.map((r, i) => (
+						<div className="gw-form__grid" style={{ gridTemplateColumns: "1fr 110px 1fr auto" }} key={i}>
+							<input value={r.name} onChange={(e) => setRoutes((rs) => rs.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} placeholder="Route / pickup area" />
+							<input type="number" min={0} value={r.price} onChange={(e) => setRoutes((rs) => rs.map((x, j) => j === i ? { ...x, price: e.target.value } : x))} placeholder="R" />
+							<input value={r.note} onChange={(e) => setRoutes((rs) => rs.map((x, j) => j === i ? { ...x, note: e.target.value } : x))} placeholder="Note (optional)" />
+							<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setRoutes((rs) => rs.filter((_, j) => j !== i))}>✕</button>
+						</div>
+					))}
+					<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setRoutes((rs) => [...rs, { name: "", price: "", note: "" }])}>+ Add route</button>
 				</div>
 				<div className="gw-form__field">
 					<label className="gw-form__label">Image</label>

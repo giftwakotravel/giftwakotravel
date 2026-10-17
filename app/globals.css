@@ -1441,3 +1441,11 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-admingate__card h1 { margin: 0; font-size: 1.3rem; }
 .gw-admingate__card input { width: 100%; border: 1px solid var(--gw-line); border-radius: 10px; padding: 0.6rem 0.8rem; font: inherit; }
 .gw-admingate__err { color: #8A1C12; font-size: 0.85rem; margin: 0; }
+
+/* ---------- event booking ---------- */
+
+.gw-evbook { max-width: 46rem; }
+.gw-evbook__icn { display: block; font-size: 1.4rem; margin-bottom: 0.35rem; }
+.gw-survey__card small { display: block; font-weight: 500; color: var(--gw-muted); font-size: 0.8rem; margin-top: 0.2rem; }
+.gw-survey__card.is-selected small { color: var(--gw-ocean); }
+.gw-survey__panel h3 { margin: 0; }
