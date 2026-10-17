@@ -6,6 +6,7 @@ import { useStaff, type StaffSection } from "@/components/staff/ctx";
 import { toast } from "@/components/Toaster";
 import { S_DEPARTMENTS, S_DOCS, S_LEAVE, type Driver, type Guide, type Registration, type StaffMember } from "@/lib/staff-data";
 import { RoleOptions } from "@/lib/staff-roles";
+import { supabase } from "@/lib/supabase";
 
 export default function StaffSectionsA({ section }: { section: StaffSection }) {
 	switch (section) {
@@ -330,14 +331,138 @@ function Employees() {
 
 /* ============================ DRIVERS ============================ */
 
+interface DriverReg {
+	id: number; status: string; full_name: string; surname: string; email: string; mobile: string;
+	town: string; province: string; licence_number: string; vehicle_make: string; vehicle_model: string;
+	vehicle_reg: string; vehicle_type: string; passenger_capacity: number | null; services: string[];
+	created_at: string;
+	[key: string]: unknown;
+}
+
+function DriverRegQueue() {
+	const { confirm } = useStaff();
+	const [rows, setRows] = useState<DriverReg[]>([]);
+	const [sel, setSel] = useState<DriverReg | null>(null);
+	const [loading, setLoading] = useState(true);
+
+	const load = async () => {
+		const c = supabase();
+		if (!c) { setLoading(false); return; }
+		const { data } = await c.from("driver_registrations").select("*").order("created_at", { ascending: false });
+		setRows((data ?? []) as DriverReg[]);
+		setLoading(false);
+	};
+	useState(() => { void load(); });
+
+	const setStatus = async (r: DriverReg, st: string) => {
+		const c = supabase();
+		if (!c) { toast("Not connected to the database"); return; }
+		const { error } = await c.from("driver_registrations").update({ status: st }).eq("id", r.id);
+		if (error) { toast(`Update failed: ${error.message}`); return; }
+		setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, status: st } : x)));
+		setSel((s) => (s?.id === r.id ? { ...s, status: st } : s));
+		toast(`${r.full_name} ${r.surname} → ${st}`);
+	};
+
+	const Doc = ({ label, url }: { label: string; url?: string | null }) =>
+		url ? <Dr k={label} v={<a href={url} target="_blank" rel="noreferrer">View ↗</a>} /> : <Dr k={label} v="—" />;
+	const Txt = ({ label, k }: { label: string; k: keyof DriverReg }) =>
+		<Dr k={label} v={sel ? String(sel[k] ?? "—") : "—"} />;
+
+	return (
+		<>
+			{loading ? <p className="gw-small">Loading registrations…</p> : (
+				<Table
+					cols={[
+						{ key: "n", label: "Applicant", render: (r: DriverReg) => <strong>{r.full_name} {r.surname}</strong>, sortKey: (r) => r.surname },
+						{ key: "v", label: "Vehicle", render: (r) => `${r.vehicle_make ?? ""} ${r.vehicle_model ?? ""} · ${r.vehicle_reg ?? ""}` },
+						{ key: "t", label: "Town", render: (r) => r.town ?? "—" },
+						{ key: "svc", label: "Services", render: (r) => (r.services ?? []).slice(0, 2).join(", ") + ((r.services ?? []).length > 2 ? "…" : "") },
+						{ key: "st", label: "Status", render: (r) => <Pill status={r.status} /> },
+						{ key: "a", label: "", render: (r) => <button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setSel(r)}>Review</button> },
+					]}
+					rows={rows}
+					empty="No driver registrations yet."
+				/>
+			)}
+			{sel && (
+			<Drawer title={`${sel.full_name} ${sel.surname} — driver registration`} onClose={() => setSel(null)} wide>
+				{sel.status === "Pending" && (
+					<div className="gw-buttons" style={{ marginBottom: "1rem" }}>
+						<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => void setStatus(sel, "Approved")}>Approve</button>
+						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => void setStatus(sel, "Rejected")}>Reject</button>
+					</div>
+				)}
+				{(
+					<>
+						<h4>Personal</h4>
+						<div className="gw-dlist">
+							<Dr k="Contact" v={`${sel.mobile ?? ""} · ${sel.email ?? ""}`} />
+							<Txt label="WhatsApp" k="whatsapp" />
+							<Dr k="Address" v={`${sel.address ?? ""}, ${sel.town ?? ""}, ${sel.province ?? ""}`} />
+							<Txt label="SA ID" k="sa_id" /><Txt label="DOB" k="dob" />
+							<Doc label="ID document" url={sel.id_doc_url as string} />
+							<Doc label="Selfie" url={sel.selfie_url as string} />
+						</div>
+						<h4>Licence</h4>
+						<div className="gw-dlist">
+							<Dr k="Licence" v={`${sel.licence_number ?? ""} · ${sel.licence_code ?? ""} · exp ${sel.licence_expiry ?? "—"}`} />
+							<Dr k="PrDP" v={sel.prdp_number ? `${sel.prdp_number} · exp ${sel.prdp_expiry ?? "—"}` : "—"} />
+							<Doc label="Licence doc" url={sel.licence_doc_url as string} />
+							<Doc label="PrDP doc" url={sel.prdp_doc_url as string} />
+						</div>
+						<h4>Vehicle</h4>
+						<div className="gw-dlist">
+							<Dr k="Vehicle" v={`${sel.vehicle_year ?? ""} ${sel.vehicle_make ?? ""} ${sel.vehicle_model ?? ""} (${sel.vehicle_colour ?? ""})`} />
+							<Dr k="Registration" v={String(sel.vehicle_reg ?? "—")} />
+							<Dr k="Type" v={`${sel.vehicle_type ?? ""} · ${sel.passenger_capacity ?? "?"} pax`} />
+							<Doc label="Reg certificate" url={sel.reg_cert_url as string} />
+							<Doc label="Ownership" url={sel.ownership_url as string} />
+							<Doc label="Roadworthy" url={sel.roadworthy_url as string} />
+							<Doc label="Licence disc" url={sel.licence_disc_url as string} />
+							<Doc label="Insurance" url={sel.insurance_url as string} />
+							<Doc label="Operating licence" url={sel.operating_licence_url as string} />
+						</div>
+						<h4>Services & banking</h4>
+						<div className="gw-dlist">
+							<Dr k="Services" v={(sel.services ?? []).join(", ") || "—"} />
+							<Dr k="Area" v={`${sel.operating_province ?? ""} — ${sel.towns_served ?? ""}`} />
+							<Txt label="Pickups" k="pickup_locations" />
+							<Dr k="Pricing" v={String(sel.pricing ?? "—")} />
+							<Dr k="Days" v={((sel.available_days as string[] | undefined) ?? []).join(", ") || "—"} />
+							<Txt label="Hours" k="working_hours" />
+							<Dr k="Bank" v={sel.bank_name ? `${sel.bank_name} · ${sel.account_type ?? ""} · ${sel.account_holder ?? ""}` : "—"} />
+							<Doc label="Bank proof" url={sel.bank_proof_url as string} />
+						</div>
+					</>
+				)}
+			</Drawer>
+			)}
+		</>
+	);
+}
+
 function Drivers() {
 	const { drivers, setDriverStatus, setDriverEmployStatus, confirm } = useStaff();
 	const [sub, setSub] = useState("All");
 	const [q, setQ] = useState("");
 	const [sel, setSel] = useState<Driver | null>(null);
+	const [view, setView] = useState<"drivers" | "queue">("drivers");
 
 	const match = (s: string) => s.toLowerCase().includes(q.toLowerCase());
 	const tabs = ["All", "Available", "On trip", "On leave", "Unavailable", "Suspended"];
+
+	if (view === "queue") {
+		return (
+			<>
+				<div className="gw-toolbar">
+					<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setView("drivers")}>← Drivers</button>
+					<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-registration" target="_blank" rel="noreferrer">Open registration form ↗</a>
+				</div>
+				<DriverRegQueue />
+			</>
+		);
+	}
 	const rows = drivers.filter((d) =>
 		(sub === "All" || d.status === sub) && (match(d.name) || match(d.area)),
 	);
@@ -345,7 +470,10 @@ function Drivers() {
 	return (
 		<>
 			<SubTabs tabs={tabs} active={sub} onChange={setSub} counts={Object.fromEntries(tabs.map((t) => [t, t === "All" ? drivers.length : drivers.filter((d) => d.status === t).length]))} />
-			<div className="gw-toolbar"><SearchInput value={q} onChange={setQ} placeholder="Search drivers…" /></div>
+			<div className="gw-toolbar"><SearchInput value={q} onChange={setQ} placeholder="Search drivers…" />
+				<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => setView("queue")}>Registration queue</button>
+				<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-registration" target="_blank" rel="noreferrer">Share link ↗</a>
+			</div>
 			<Table
 				cols={[
 					{ key: "code", label: "ID", render: (d: Driver) => <strong>{d.code}</strong> },

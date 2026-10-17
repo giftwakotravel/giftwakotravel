@@ -30,6 +30,7 @@ export const NAV = [
 export const FOOTER_EXPLORE = [
 	{ href: "/tours-and-services/", label: "Tours & services" },
 	{ href: "/plan-a-trip/", label: "Plan a trip" },
+	{ href: "/driver-registration/", label: "Drive with us" },
 	{ href: "/about/", label: "About us" },
 	{ href: "/contact/", label: "Contact" },
 ];
