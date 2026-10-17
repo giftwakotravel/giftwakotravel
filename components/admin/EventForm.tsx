@@ -150,32 +150,33 @@ export default function EventForm({ id, onDone }: { id: number | "new"; onDone: 
 		onDone();
 	}
 
-	const Sec = ({ n, t, children }: { n: number; t: string; children: React.ReactNode }) => (
-		<fieldset className="gw-evform-sec">
+	const sec = (n: number, t: string, children: React.ReactNode) => (
+		<fieldset className="gw-evform-sec" key={n}>
 			<legend><span className="gw-evform-num">{n}</span> {t}</legend>
 			{children}
 		</fieldset>
 	);
-	const F = ({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) => (
+	const fld = (label: string, children: React.ReactNode, full?: boolean) => (
 		<div className={`gw-form__field${full ? " gw-form__field--full" : ""}`}><label className="gw-form__label">{label}</label>{children}</div>
 	);
-	const Bool = ({ label, v, k }: { label: string; v: boolean; k: keyof EvForm }) => (
-		<label className="gw-form__check"><input type="checkbox" checked={v} onChange={(e) => set(k, e.target.checked as never)} /> {label}</label>
+	const bool = (label: string, v: boolean, k: keyof EvForm) => (
+		<label className="gw-form__check" key={k}><input type="checkbox" checked={v} onChange={(e) => set(k, e.target.checked as never)} /> {label}</label>
 	);
 
 	return (
 		<div className="gw-evform">
 			{/* 1 — basic info */}
-			<Sec n={1} t="Basic event information">
+			{sec(1, "Basic event information", <>
+
 				<div className="gw-form__grid">
-					<F label="Event name *"><input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="Party Misava" /></F>
-					<F label="Category"><select value={f.category} onChange={(e) => set("category", e.target.value)}><option value="">Select…</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></F>
-					<F label="Event organiser"><input value={f.organiser} onChange={(e) => set("organiser", e.target.value)} placeholder="e.g. Party Misava crew" /></F>
-					<F label="Featured artist(s) or guest(s)"><input value={f.featuring} onChange={(e) => set("featuring", e.target.value)} placeholder="e.g. King Monada" /></F>
+					{fld("Event name *", <input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="Party Misava" />)}
+					{fld("Category", <select value={f.category} onChange={(e) => set("category", e.target.value)}><option value="">Select…</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>)}
+					{fld("Event organiser", <input value={f.organiser} onChange={(e) => set("organiser", e.target.value)} placeholder="e.g. Party Misava crew" />)}
+					{fld("Featured artist(s) or guest(s)", <input value={f.featuring} onChange={(e) => set("featuring", e.target.value)} placeholder="e.g. King Monada" />)}
 				</div>
-				<F label="Short description"><input value={f.short_desc} onChange={(e) => set("short_desc", e.target.value)} placeholder="One line for the event card" /></F>
-				<F label="Full event description" full><textarea rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} /></F>
-				<F label="Event poster / cover image">
+				{fld("Short description", <input value={f.short_desc} onChange={(e) => set("short_desc", e.target.value)} placeholder="One line for the event card" />)}
+				{fld("Full event description", <textarea rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} />, true)}
+				{fld("Event poster / cover image", <>
 					<input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) void up(file, (u) => set("image", u)); }} />
 					{f.image && (
 						<div className="gw-evform-prev">
@@ -184,56 +185,60 @@ export default function EventForm({ id, onDone }: { id: number | "new"; onDone: 
 							<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => set("image", "")}>Remove</button>
 						</div>
 					)}
-				</F>
-			</Sec>
+				</>)}
+			</>)}
 
 			{/* 2 — date & time */}
-			<Sec n={2} t="Date & time">
+			{sec(2, "Date & time", <>
+
 				<div className="gw-form__grid">
-					<F label="Event start date"><input type="date" value={f.event_date} onChange={(e) => set("event_date", e.target.value)} /></F>
-					<F label="Event end date"><input type="date" value={f.end_date} onChange={(e) => set("end_date", e.target.value)} /></F>
-					<F label="Doors open time"><input type="time" value={f.doors_time} onChange={(e) => set("doors_time", e.target.value)} /></F>
-					<F label="Event start time"><input type="time" value={f.start_time} onChange={(e) => set("start_time", e.target.value)} /></F>
-					<F label="Event end time"><input type="time" value={f.end_time} onChange={(e) => set("end_time", e.target.value)} /></F>
-					<F label="Booking opening date"><input type="date" value={f.booking_opens} onChange={(e) => set("booking_opens", e.target.value)} /></F>
-					<F label="Booking closing date"><input type="date" value={f.booking_closes} onChange={(e) => set("booking_closes", e.target.value)} /></F>
+					{fld("Event start date", <input type="date" value={f.event_date} onChange={(e) => set("event_date", e.target.value)} />)}
+					{fld("Event end date", <input type="date" value={f.end_date} onChange={(e) => set("end_date", e.target.value)} />)}
+					{fld("Doors open time", <input type="time" value={f.doors_time} onChange={(e) => set("doors_time", e.target.value)} />)}
+					{fld("Event start time", <input type="time" value={f.start_time} onChange={(e) => set("start_time", e.target.value)} />)}
+					{fld("Event end time", <input type="time" value={f.end_time} onChange={(e) => set("end_time", e.target.value)} />)}
+					{fld("Booking opening date", <input type="date" value={f.booking_opens} onChange={(e) => set("booking_opens", e.target.value)} />)}
+					{fld("Booking closing date", <input type="date" value={f.booking_closes} onChange={(e) => set("booking_closes", e.target.value)} />)}
 				</div>
-			</Sec>
+			</>)}
 
 			{/* 3 — venue */}
-			<Sec n={3} t="Venue & location">
+			{sec(3, "Venue & location", <>
+
 				<div className="gw-form__grid">
-					<F label="Venue name"><input value={f.venue} onChange={(e) => set("venue", e.target.value)} placeholder="Hayzaview Sports Ground" /></F>
-					<F label="Province"><input value={f.province} onChange={(e) => set("province", e.target.value)} placeholder="Limpopo" /></F>
-					<F label="City / town"><input value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="Tzaneen" /></F>
-					<F label="Street address"><input value={f.street} onChange={(e) => set("street", e.target.value)} /></F>
-					<F label="Google Maps link"><input value={f.maps_url} onChange={(e) => set("maps_url", e.target.value)} placeholder="https://maps.google.com/…" /></F>
-					<F label="Venue contact number"><input type="tel" value={f.venue_contact} onChange={(e) => set("venue_contact", e.target.value)} /></F>
+					{fld("Venue name", <input value={f.venue} onChange={(e) => set("venue", e.target.value)} placeholder="Hayzaview Sports Ground" />)}
+					{fld("Province", <input value={f.province} onChange={(e) => set("province", e.target.value)} placeholder="Limpopo" />)}
+					{fld("City / town", <input value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="Tzaneen" />)}
+					{fld("Street address", <input value={f.street} onChange={(e) => set("street", e.target.value)} />)}
+					{fld("Google Maps link", <input value={f.maps_url} onChange={(e) => set("maps_url", e.target.value)} placeholder="https://maps.google.com/…" />)}
+					{fld("Venue contact number", <input type="tel" value={f.venue_contact} onChange={(e) => set("venue_contact", e.target.value)} />)}
 				</div>
-			</Sec>
+			</>)}
 
 			{/* 4 — tickets */}
-			<Sec n={4} t="Tickets & pricing">
+			{sec(4, "Tickets & pricing", <>
+
 				{f.tickets.map((t, i) => (
 					<div className="gw-form__grid" style={{ gridTemplateColumns: "1.4fr 100px 100px auto" }} key={i}>
-						<F label={i === 0 ? "Ticket type" : ""}><input value={t.type} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, type: e.target.value } : x))} placeholder="General Admission" /></F>
-						<F label={i === 0 ? "Price (R)" : ""}><input type="number" min={0} value={t.price} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, price: e.target.value } : x))} /></F>
-						<F label={i === 0 ? "Quantity" : ""}><input type="number" min={0} value={t.quantity} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} /></F>
+						{fld(i === 0 ? "Ticket type" : "", <input value={t.type} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, type: e.target.value } : x))} placeholder="General Admission" />)}
+						{fld(i === 0 ? "Price (R)" : "", <input type="number" min={0} value={t.price} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, price: e.target.value } : x))} />)}
+						{fld(i === 0 ? "Quantity" : "", <input type="number" min={0} value={t.quantity} onChange={(e) => set("tickets", f.tickets.map((x, j) => j === i ? { ...x, quantity: e.target.value } : x))} />)}
 						<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" style={{ alignSelf: "end" }} onClick={() => set("tickets", f.tickets.filter((_, j) => j !== i))}>✕</button>
 					</div>
 				))}
 				<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => set("tickets", [...f.tickets, { type: "", price: "", quantity: "" }])}>+ Add ticket type</button>
 				<div className="gw-form__grid" style={{ marginTop: "1rem" }}>
-					<F label="Ticket sales start"><input type="date" value={f.sales_start} onChange={(e) => set("sales_start", e.target.value)} /></F>
-					<F label="Ticket sales end"><input type="date" value={f.sales_end} onChange={(e) => set("sales_end", e.target.value)} /></F>
-					<F label="Max tickets per customer"><input type="number" min={0} value={f.max_per_customer} onChange={(e) => set("max_per_customer", e.target.value)} /></F>
-					<F label="Tickets sold by"><select value={f.ticket_source} onChange={(e) => set("ticket_source", e.target.value)}><option value="">Select…</option>{SOURCES.map((s) => <option key={s}>{s}</option>)}</select></F>
+					{fld("Ticket sales start", <input type="date" value={f.sales_start} onChange={(e) => set("sales_start", e.target.value)} />)}
+					{fld("Ticket sales end", <input type="date" value={f.sales_end} onChange={(e) => set("sales_end", e.target.value)} />)}
+					{fld("Max tickets per customer", <input type="number" min={0} value={f.max_per_customer} onChange={(e) => set("max_per_customer", e.target.value)} />)}
+					{fld("Tickets sold by", <select value={f.ticket_source} onChange={(e) => set("ticket_source", e.target.value)}><option value="">Select…</option>{SOURCES.map((s) => <option key={s}>{s}</option>)}</select>)}
 				</div>
 				<p className="gw-form__hint">Bookings are requests — nothing is paid online; you confirm availability with the organiser.</p>
-			</Sec>
+			</>)}
 
 			{/* 5 — transport */}
-			<Sec n={5} t="Transport & travel">
+			{sec(5, "Transport & travel", <>
+
 				<label className="gw-form__check" style={{ marginBottom: "0.8rem", display: "block" }}>
 					<input type="checkbox" checked={f.transport_offered} onChange={(e) => set("transport_offered", e.target.checked)} />{" "}
 					This event offers transport
@@ -266,11 +271,12 @@ export default function EventForm({ id, onDone }: { id: number | "new"; onDone: 
 						<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => set("routes", [...f.routes, { ...EMPTY_ROUTE }])}>+ Add route</button>
 					</>
 				)}
-			</Sec>
+			</>)}
 
 			{/* 6 — gallery & promo */}
-			<Sec n={6} t="Event gallery & promotion">
-				<F label="Additional images">
+			{sec(6, "Event gallery & promotion", <>
+
+				{fld("Additional images", <>
 					<input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) void up(file, (u) => set("gallery", [...f.gallery, u])); }} />
 					{f.gallery.length > 0 && (
 						<div className="gw-evform-gallery">
@@ -283,28 +289,29 @@ export default function EventForm({ id, onDone }: { id: number | "new"; onDone: 
 							))}
 						</div>
 					)}
-				</F>
+				</>)}
 				<div className="gw-form__grid">
-					<F label="Promotional video URL"><input value={f.video_url} onChange={(e) => set("video_url", e.target.value)} placeholder="https://youtube.com/…" /></F>
-					<F label="Promotional badge"><select value={f.badge} onChange={(e) => set("badge", e.target.value)}><option value="">None</option><option>Popular</option><option>Upcoming</option><option>Selling fast</option></select></F>
+					{fld("Promotional video URL", <input value={f.video_url} onChange={(e) => set("video_url", e.target.value)} placeholder="https://youtube.com/…" />)}
+					{fld("Promotional badge", <select value={f.badge} onChange={(e) => set("badge", e.target.value)}><option value="">None</option><option>Popular</option><option>Upcoming</option><option>Selling fast</option></select>)}
 				</div>
-				<Bool label="Featured event" v={f.featured} k="featured" />
-			</Sec>
+				{bool("Featured event", f.featured, "featured")}
+			</>)}
 
 			{/* 7 — booking settings */}
-			<Sec n={7} t="Booking settings">
-				<Bool label="Enable bookings" v={f.bookings_enabled} k="bookings_enabled" />
-				<Bool label="Allow ticket-only bookings" v={f.allow_ticket_only} k="allow_ticket_only" />
-				<Bool label="Allow transport-only bookings" v={f.allow_transport_only} k="allow_transport_only" />
-				<Bool label="Allow ticket + transport bookings" v={f.allow_ticket_transport} k="allow_ticket_transport" />
+			{sec(7, "Booking settings", <>
+
+				{bool("Enable bookings", f.bookings_enabled, "bookings_enabled")}
+				{bool("Allow ticket-only bookings", f.allow_ticket_only, "allow_ticket_only")}
+				{bool("Allow transport-only bookings", f.allow_transport_only, "allow_transport_only")}
+				{bool("Allow ticket + transport bookings", f.allow_ticket_transport, "allow_ticket_transport")}
 				<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-					<F label="Max passengers per booking"><input type="number" min={1} value={f.max_pax} onChange={(e) => set("max_pax", e.target.value)} /></F>
-					<F label="Booking confirmation method"><select value={f.confirm_method} onChange={(e) => set("confirm_method", e.target.value)}>{CONFIRM.map((c) => <option key={c}>{c}</option>)}</select></F>
-					<F label="WhatsApp booking number"><input type="tel" value={f.whatsapp_number} onChange={(e) => set("whatsapp_number", e.target.value)} placeholder="070 617 8269" /></F>
+					{fld("Max passengers per booking", <input type="number" min={1} value={f.max_pax} onChange={(e) => set("max_pax", e.target.value)} />)}
+					{fld("Booking confirmation method", <select value={f.confirm_method} onChange={(e) => set("confirm_method", e.target.value)}>{CONFIRM.map((c) => <option key={c}>{c}</option>)}</select>)}
+					{fld("WhatsApp booking number", <input type="tel" value={f.whatsapp_number} onChange={(e) => set("whatsapp_number", e.target.value)} placeholder="070 617 8269" />)}
 				</div>
-				<F label="Cancellation policy"><textarea rows={2} value={f.cancellation_policy} onChange={(e) => set("cancellation_policy", e.target.value)} /></F>
-				<F label="Terms & conditions"><textarea rows={2} value={f.terms} onChange={(e) => set("terms", e.target.value)} /></F>
-			</Sec>
+				{fld("Cancellation policy", <textarea rows={2} value={f.cancellation_policy} onChange={(e) => set("cancellation_policy", e.target.value)} />)}
+				{fld("Terms & conditions", <textarea rows={2} value={f.terms} onChange={(e) => set("terms", e.target.value)} />)}
+			</>)}
 
 			{/* 8 — publish */}
 			<div className="gw-evform-actions">

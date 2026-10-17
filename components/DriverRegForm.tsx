@@ -95,17 +95,17 @@ export default function DriverRegForm() {
 		window.scrollTo({ top: 0 });
 	}
 
-	const Fld = ({ k, label, type = "text", ph }: { k: string; label: string; type?: string; ph?: string }) => (
+	const fld = ({ k, label, type = "text", ph }: { k: string; label: string; type?: string; ph?: string }) => (
 		<div className="gw-form__field"><label className="gw-form__label">{label}</label>
 			<input type={type} value={s(k)} onChange={(e) => set(k, e.target.value)} placeholder={ph} />
 		</div>
 	);
-	const Sel = ({ k, label, opts }: { k: string; label: string; opts: string[] }) => (
+	const sel = ({ k, label, opts }: { k: string; label: string; opts: string[] }) => (
 		<div className="gw-form__field"><label className="gw-form__label">{label}</label>
 			<select value={s(k)} onChange={(e) => set(k, e.target.value)}><option value="">Select…</option>{opts.map((o) => <option key={o}>{o}</option>)}</select>
 		</div>
 	);
-	const Up = ({ k, label, req }: { k: string; label: string; req?: boolean }) => (
+	const up = ({ k, label, req }: { k: string; label: string; req?: boolean }) => (
 		<div className="gw-form__field"><label className="gw-form__label">{label}{req ? " *" : ""}</label>
 			<input type="file" accept="image/*,.pdf" onChange={(e) => setFiles((p) => ({ ...p, [k]: e.target.files?.[0] ?? null }))} />
 			{file(k) && <p className="gw-form__hint">✓ {file(k)!.name}</p>}
@@ -140,23 +140,23 @@ export default function DriverRegForm() {
 				<div className="gw-survey__panel">
 					<h3>Driver's identity</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-						<Fld k="full_name" label="Full name *" />
-						<Fld k="surname" label="Surname *" />
-						<Fld k="dob" label="Date of birth" type="date" />
-						<Fld k="sa_id" label="SA ID number" />
-						<Sel k="gender" label="Gender (optional)" opts={["Male", "Female", "Other"]} />
-						<Fld k="nationality" label="Nationality" />
-						<Fld k="mobile" label="Mobile number *" type="tel" />
-						<Fld k="whatsapp" label="WhatsApp number" type="tel" />
-						<Fld k="email" label="Email address *" type="email" />
-						<Fld k="address" label="Residential address *" />
-						<Fld k="province" label="Province" ph="Limpopo" />
-						<Fld k="town" label="City / town" ph="Tzaneen" />
+						{fld({ k: "full_name", label: "Full name *" })}
+						{fld({ k: "surname", label: "Surname *" })}
+						{fld({ k: "dob", label: "Date of birth", type: "date" })}
+						{fld({ k: "sa_id", label: "SA ID number" })}
+						{sel({ k: "gender", label: "Gender (optional)", opts: ["Male", "Female", "Other"] })}
+						{fld({ k: "nationality", label: "Nationality" })}
+						{fld({ k: "mobile", label: "Mobile number *", type: "tel" })}
+						{fld({ k: "whatsapp", label: "WhatsApp number", type: "tel" })}
+						{fld({ k: "email", label: "Email address *", type: "email" })}
+						{fld({ k: "address", label: "Residential address *" })}
+						{fld({ k: "province", label: "Province", ph: "Limpopo" })}
+						{fld({ k: "town", label: "City / town", ph: "Tzaneen" })}
 					</div>
 					<h4>Identity documents</h4>
 					<div className="gw-form__grid">
-						<Up k="id_doc" label="SA ID document or passport" req />
-						<Up k="selfie" label="Selfie for identity verification (optional)" />
+						{up({ k: "id_doc", label: "SA ID document or passport", req: true })}
+						{up({ k: "selfie", label: "Selfie for identity verification (optional)" })}
 					</div>
 				</div>
 			)}
@@ -166,15 +166,15 @@ export default function DriverRegForm() {
 				<div className="gw-survey__panel">
 					<h3>Driving credentials</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-						<Fld k="licence_number" label="Driver's licence number *" />
-						<Sel k="licence_code" label="Licence code" opts={["A", "A1", "B", "EB", "C1", "EC1", "C", "EC"]} />
-						<Fld k="licence_expiry" label="Licence expiry date" type="date" />
-						<Fld k="prdp_number" label="PrDP number (if applicable)" />
-						<Fld k="prdp_expiry" label="PrDP expiry date" type="date" />
+						{fld({ k: "licence_number", label: "Driver's licence number *" })}
+						{sel({ k: "licence_code", label: "Licence code", opts: ["A", "A1", "B", "EB", "C1", "EC1", "C", "EC"] })}
+						{fld({ k: "licence_expiry", label: "Licence expiry date", type: "date" })}
+						{fld({ k: "prdp_number", label: "PrDP number (if applicable)" })}
+						{fld({ k: "prdp_expiry", label: "PrDP expiry date", type: "date" })}
 					</div>
 					<div className="gw-form__grid">
-						<Up k="licence_doc" label="Upload driver's licence" req />
-						<Up k="prdp_doc" label="Upload PrDP (if applicable)" />
+						{up({ k: "licence_doc", label: "Upload driver's licence", req: true })}
+						{up({ k: "prdp_doc", label: "Upload PrDP (if applicable)" })}
 					</div>
 				</div>
 			)}
@@ -184,16 +184,16 @@ export default function DriverRegForm() {
 				<div className="gw-survey__panel">
 					<h3>Register your vehicle</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-						<Fld k="vehicle_make" label="Vehicle make *" ph="Toyota" />
-						<Fld k="vehicle_model" label="Model *" ph="Quantum" />
-						<Fld k="vehicle_year" label="Year" ph="2023" />
-						<Fld k="vehicle_colour" label="Colour" ph="White" />
-						<Fld k="vehicle_reg" label="Registration number *" ph="ABC 123 L" />
-						<Sel k="vehicle_type" label="Vehicle type *" opts={VEHICLE_TYPES} />
-						<Fld k="passenger_capacity" label="Passenger capacity (excl. driver) *" type="number" />
-						<Fld k="doors" label="Number of doors" type="number" />
-						<Sel k="luggage" label="Luggage capacity" opts={["Small", "Medium", "Large"]} />
-						<Sel k="fuel_type" label="Fuel type" opts={["Petrol", "Diesel", "Hybrid", "Electric"]} />
+						{fld({ k: "vehicle_make", label: "Vehicle make *", ph: "Toyota" })}
+						{fld({ k: "vehicle_model", label: "Model *", ph: "Quantum" })}
+						{fld({ k: "vehicle_year", label: "Year", ph: "2023" })}
+						{fld({ k: "vehicle_colour", label: "Colour", ph: "White" })}
+						{fld({ k: "vehicle_reg", label: "Registration number *", ph: "ABC 123 L" })}
+						{sel({ k: "vehicle_type", label: "Vehicle type *", opts: VEHICLE_TYPES })}
+						{fld({ k: "passenger_capacity", label: "Passenger capacity (excl. driver) *", type: "number" })}
+						{fld({ k: "doors", label: "Number of doors", type: "number" })}
+						{sel({ k: "luggage", label: "Luggage capacity", opts: ["Small", "Medium", "Large"] })}
+						{sel({ k: "fuel_type", label: "Fuel type", opts: ["Petrol", "Diesel", "Hybrid", "Electric"] })}
 					</div>
 					<label className="gw-form__check"><input type="checkbox" checked={!!f.aircon} onChange={(e) => set("aircon", e.target.checked)} /> Air conditioning</label>
 				</div>
@@ -204,18 +204,18 @@ export default function DriverRegForm() {
 				<div className="gw-survey__panel">
 					<h3>Upload vehicle documents</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-						<Up k="reg_cert" label="Vehicle registration certificate" req />
-						<Up k="ownership" label="Proof of ownership or authorisation" req />
-						<Up k="roadworthy" label="Roadworthiness certificate" />
-						<Up k="licence_disc" label="Vehicle licence disc" req />
-						<Up k="insurance" label="Passenger liability insurance" req />
-						<Up k="op_licence" label="Operating licence or permit" />
+						{up({ k: "reg_cert", label: "Vehicle registration certificate", req: true })}
+						{up({ k: "ownership", label: "Proof of ownership or authorisation", req: true })}
+						{up({ k: "roadworthy", label: "Roadworthiness certificate" })}
+						{up({ k: "licence_disc", label: "Vehicle licence disc", req: true })}
+						{up({ k: "insurance", label: "Passenger liability insurance", req: true })}
+						{up({ k: "op_licence", label: "Operating licence or permit" })}
 					</div>
 					<div className="gw-form__grid">
-						<Fld k="licence_disc_expiry" label="Licence disc expiry" type="date" />
-						<Fld k="roadworthy_expiry" label="Roadworthiness expiry" type="date" />
-						<Fld k="insurance_expiry" label="Insurance expiry" type="date" />
-						<Fld k="op_licence_expiry" label="Operating licence expiry" type="date" />
+						{fld({ k: "licence_disc_expiry", label: "Licence disc expiry", type: "date" })}
+						{fld({ k: "roadworthy_expiry", label: "Roadworthiness expiry", type: "date" })}
+						{fld({ k: "insurance_expiry", label: "Insurance expiry", type: "date" })}
+						{fld({ k: "op_licence_expiry", label: "Operating licence expiry", type: "date" })}
 					</div>
 				</div>
 			)}
@@ -230,12 +230,12 @@ export default function DriverRegForm() {
 						))}
 					</div>
 					<div className="gw-form__grid" style={{ marginTop: "1rem" }}>
-						<Fld k="operating_province" label="Operating province" ph="Limpopo" />
-						<Fld k="towns_served" label="Towns or cities served" ph="Tzaneen, Polokwane" />
-						<Fld k="pickup_locations" label="Available pickup locations" />
-						<Fld k="max_distance" label="Maximum travel distance" ph="e.g. 500 km" />
-						<Fld k="working_hours" label="Preferred working hours" ph="e.g. 06:00–18:00" />
-						<Sel k="pricing" label="How do you price?" opts={PRICING} />
+						{fld({ k: "operating_province", label: "Operating province", ph: "Limpopo" })}
+						{fld({ k: "towns_served", label: "Towns or cities served", ph: "Tzaneen, Polokwane" })}
+						{fld({ k: "pickup_locations", label: "Available pickup locations" })}
+						{fld({ k: "max_distance", label: "Maximum travel distance", ph: "e.g. 500 km" })}
+						{fld({ k: "working_hours", label: "Preferred working hours", ph: "e.g. 06:00–18:00" })}
+						{sel({ k: "pricing", label: "How do you price?", opts: PRICING })}
 					</div>
 					<div className="gw-form__field">
 						<label className="gw-form__label">Available days</label>
@@ -256,13 +256,13 @@ export default function DriverRegForm() {
 				<div className="gw-survey__panel">
 					<h3>Payment and agreement</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
-						<Fld k="account_holder" label="Account holder name" />
-						<Fld k="bank_name" label="Bank name" />
-						<Sel k="account_type" label="Account type" opts={["Cheque", "Savings", "Transmission"]} />
-						<Fld k="account_number" label="Account number" />
-						<Fld k="branch_code" label="Branch code" />
+						{fld({ k: "account_holder", label: "Account holder name" })}
+						{fld({ k: "bank_name", label: "Bank name" })}
+						{sel({ k: "account_type", label: "Account type", opts: ["Cheque", "Savings", "Transmission"] })}
+						{fld({ k: "account_number", label: "Account number" })}
+						{fld({ k: "branch_code", label: "Branch code" })}
 					</div>
-					<Up k="bank_proof" label="Proof of bank account (optional)" />
+					{up({ k: "bank_proof", label: "Proof of bank account (optional)" })}
 					<div className="gw-form__field" style={{ marginTop: "0.8rem" }}>
 						{([
 							["conf_accurate", "I confirm that the information provided is accurate."],
