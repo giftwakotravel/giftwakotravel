@@ -167,7 +167,7 @@ export default function AdminDash() {
 					<div className="gw-admin__brand">
 						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img src="/images/giftwako-logo.png" alt="" width={40} height={40} />
-						{!collapsed && <span>Gifwako Admin</span>}
+						{!collapsed && <span>GiftWako Admin</span>}
 					</div>
 					<nav aria-label="Dashboard sections">
 						{SECTIONS.map((s) => (

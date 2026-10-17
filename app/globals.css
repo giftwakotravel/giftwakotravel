@@ -1433,3 +1433,11 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-evdetail__facts dt { font-weight: 700; color: var(--gw-muted); }
 .gw-evdetail__facts dd { margin: 0; }
 @media (max-width: 800px) { .gw-evdetail { grid-template-columns: 1fr; } }
+
+/* ---------- admin gate ---------- */
+
+.gw-admingate { min-height: 100vh; display: grid; place-items: center; background: var(--gw-sand); padding: 1rem; }
+.gw-admingate__card { background: #fff; border: 1px solid var(--gw-line); border-radius: 16px; padding: 2rem; width: 100%; max-width: 22rem; text-align: center; display: grid; gap: 0.7rem; justify-items: center; }
+.gw-admingate__card h1 { margin: 0; font-size: 1.3rem; }
+.gw-admingate__card input { width: 100%; border: 1px solid var(--gw-line); border-radius: 10px; padding: 0.6rem 0.8rem; font: inherit; }
+.gw-admingate__err { color: #8A1C12; font-size: 0.85rem; margin: 0; }

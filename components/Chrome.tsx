@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const BARE = ["/gifwako_admin_dashboard"];
+const BARE = ["/giftwako_admin_dashboard"];
 
 export default function Chrome({
 	header,
