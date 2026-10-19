@@ -335,6 +335,8 @@ interface DriverReg {
 	id: number; status: string; full_name: string; surname: string; email: string; mobile: string;
 	town: string; province: string; licence_number: string; vehicle_make: string; vehicle_model: string;
 	vehicle_reg: string; vehicle_type: string; passenger_capacity: number | null; services: string[];
+	contract_accepted?: boolean; contract_version?: string | null; contract_accepted_at?: string | null;
+	signed_contract_url?: string | null;
 	created_at: string;
 	[key: string]: unknown;
 }
@@ -378,6 +380,7 @@ function DriverRegQueue() {
 						{ key: "v", label: "Vehicle", render: (r) => `${r.vehicle_make ?? ""} ${r.vehicle_model ?? ""} · ${r.vehicle_reg ?? ""}` },
 						{ key: "t", label: "Town", render: (r) => r.town ?? "—" },
 						{ key: "svc", label: "Services", render: (r) => (r.services ?? []).slice(0, 2).join(", ") + ((r.services ?? []).length > 2 ? "…" : "") },
+						{ key: "c", label: "Agreement", render: (r) => <Pill status={r.contract_accepted ? "Approved" : "Pending"} /> },
 						{ key: "st", label: "Status", render: (r) => <Pill status={r.status} /> },
 						{ key: "a", label: "", render: (r) => <button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setSel(r)}>Review</button> },
 					]}
@@ -389,7 +392,12 @@ function DriverRegQueue() {
 			<Drawer title={`${sel.full_name} ${sel.surname} — driver registration`} onClose={() => setSel(null)} wide>
 				{sel.status === "Pending" && (
 					<div className="gw-buttons" style={{ marginBottom: "1rem" }}>
-						<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => void setStatus(sel, "Approved")}>Approve</button>
+						<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => sel.contract_accepted ? void setStatus(sel, "Approved") : confirm({
+							title: "Agreement not accepted",
+							body: "This driver has not accepted the Affiliation Agreement. Approve anyway?",
+							okLabel: "Approve anyway",
+							action: () => void setStatus(sel, "Approved"),
+						})}>Approve</button>
 						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => void setStatus(sel, "Rejected")}>Reject</button>
 					</div>
 				)}
@@ -422,6 +430,11 @@ function DriverRegQueue() {
 							<Doc label="Licence disc" url={sel.licence_disc_url as string} />
 							<Doc label="Insurance" url={sel.insurance_url as string} />
 							<Doc label="Operating licence" url={sel.operating_licence_url as string} />
+						</div>
+						<h4>Affiliation Agreement</h4>
+						<div className="gw-dlist">
+							<Dr k="Accepted" v={sel.contract_accepted ? `Yes · v${sel.contract_version ?? "?"} · ${sel.contract_accepted_at ? new Date(sel.contract_accepted_at).toLocaleDateString() : "—"}` : "Not accepted"} />
+							<Doc label="Signed copy" url={sel.signed_contract_url} />
 						</div>
 						<h4>Services & banking</h4>
 						<div className="gw-dlist">

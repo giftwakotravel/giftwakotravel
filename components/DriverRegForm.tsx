@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/Toaster";
+import agreement from "@/data/driver-agreement.json";
 
 const STEPS = [
 	"Personal information", "Driver's licence", "Vehicle information",
-	"Vehicle documents", "Transport services", "Banking & submission",
+	"Vehicle documents", "Transport services", "Driver agreement", "Banking & submission",
 ];
 
 const VEHICLE_TYPES = ["Sedan", "Hatchback", "SUV", "Bakkie", "Minibus", "Minibus Taxi", "Coaster", "Bus", "Luxury Vehicle", "Other"];
@@ -47,19 +48,41 @@ export default function DriverRegForm() {
 		return urls;
 	}
 
-	const next = () => {
+	const validate = (st: number): string[] => {
 		const errs: string[] = [];
-		if (step === 0 && (!s("full_name") || !s("surname") || !s("mobile") || !s("email") || !s("address"))) errs.push("Complete name, mobile, email and address fields");
-		if (step === 1 && !s("licence_number")) errs.push("Licence number is required");
-		if (step === 2 && (!s("vehicle_make") || !s("vehicle_model") || !s("vehicle_reg") || !s("vehicle_type") || !s("passenger_capacity"))) errs.push("Complete the vehicle details");
-		if (step === 4 && ((f.services as string[] | undefined) ?? []).length === 0) errs.push("Select at least one service");
-		if (step === 5 && (!f.conf_accurate || !f.conf_verify || !f.conf_terms || !f.conf_privacy)) errs.push("All confirmations are required");
+		if (st === 0) {
+			if (!s("full_name") || !s("surname") || !s("mobile") || !s("email") || !s("address")) errs.push("Complete name, mobile, email and address fields");
+			if (!file("id_doc")) errs.push("Upload your SA ID document or passport");
+		}
+		if (st === 1) {
+			if (!s("licence_number")) errs.push("Licence number is required");
+			if (!file("licence_doc")) errs.push("Upload your driver's licence");
+		}
+		if (st === 2 && (!s("vehicle_make") || !s("vehicle_model") || !s("vehicle_reg") || !s("vehicle_type") || !s("passenger_capacity"))) errs.push("Complete the vehicle details");
+		if (st === 3 && (!file("reg_cert") || !file("ownership") || !file("licence_disc") || !file("insurance"))) errs.push("Upload the vehicle registration certificate, proof of ownership, licence disc and insurance");
+		if (st === 4 && ((f.services as string[] | undefined) ?? []).length === 0) errs.push("Select at least one service");
+		if (st === 5 && !f.contract_accepted) errs.push("Accept the Affiliation Agreement to continue");
+		if (st === 6 && (!f.conf_accurate || !f.conf_verify || !f.conf_terms || !f.conf_privacy)) errs.push("All confirmations are required");
+		return errs;
+	};
+
+	const next = () => {
+		const errs = validate(step);
 		setErrors(errs);
-		if (!errs.length) { setStep((s2) => Math.min(s2 + 1, 5)); window.scrollTo({ top: 0 }); }
+		if (!errs.length) { setStep((s2) => Math.min(s2 + 1, 6)); window.scrollTo({ top: 0 }); }
 	};
 	const back = () => { setErrors([]); setStep((s2) => Math.max(0, s2 - 1)); };
 
 	async function submit() {
+		for (let i = 0; i <= 6; i++) {
+			const errs = validate(i);
+			if (errs.length) {
+				setErrors(errs);
+				setStep(i);
+				window.scrollTo({ top: 0 });
+				return;
+			}
+		}
 		setStatus("saving");
 		const c = supabase();
 		if (!c) { setErrors(["Not connected right now — WhatsApp us on 070 617 8269."]); setStatus("idle"); return; }
@@ -88,6 +111,8 @@ export default function DriverRegForm() {
 			account_holder: s("account_holder") || null, bank_name: s("bank_name") || null,
 			account_type: s("account_type") || null, account_number: s("account_number") || null,
 			branch_code: s("branch_code") || null, bank_proof_url: urls.bank_proof ?? null,
+			contract_accepted: true, contract_version: agreement.version,
+			contract_accepted_at: new Date().toISOString(), signed_contract_url: urls.signed_contract ?? null,
 		};
 		const { error } = await c.from("driver_registrations").insert(row);
 		if (error) { setErrors([`Submission failed: ${error.message}`]); setStatus("idle"); return; }
@@ -116,7 +141,7 @@ export default function DriverRegForm() {
 		return (
 			<div className="gw-form__success">
 				<h2>Registration received!</h2>
-				<p>Thank you for registering with GiftWako Travel. Our team will verify your documents and contact you about approval and pricing.</p>
+				<p>Thank you for registering with GiftWako Travel. Our team will verify your documents and contact you about approval and pricing. Keep a copy of the <a href="/docs/driver-service-agreement.pdf" target="_blank" rel="noreferrer">Affiliation Agreement</a> for your records.</p>
 			</div>
 		);
 	}
@@ -251,8 +276,41 @@ export default function DriverRegForm() {
 				</div>
 			)}
 
-			{/* 6 — banking */}
+			{/* 6 — driver agreement */}
 			{step === 5 && (
+				<div className="gw-survey__panel">
+					<h3>{agreement.title}</h3>
+					<p className="gw-form__hint" style={{ marginTop: "0.6rem" }}>Please read the agreement before accepting. GiftWako Travel approves your registration only after reviewing your documents and acceptance.</p>
+					<div className="gw-buttons" style={{ marginTop: "0.8rem" }}>
+						<a className="gw-btn gw-btn--gold" href="/docs/driver-service-agreement.pdf" target="_blank" rel="noreferrer">View contract (PDF) ↗</a>
+						<a className="gw-btn gw-btn--outline gw-btn--outline-dark" href="/driver-agreement" target="_blank" rel="noreferrer">Read online ↗</a>
+					</div>
+					<details className="gw-agreement__inline">
+						<summary>Read the agreement here</summary>
+						<div className="gw-agreement__body">
+							<p>{agreement.intro}</p>
+							<p><em>{agreement.vision}</em></p>
+							{agreement.sections.map((sec) => (
+								<div key={sec.heading}>
+									<h4>{sec.heading}</h4>
+									{sec.clauses.map((c, i) => <p key={i} className="gw-small">{c}</p>)}
+								</div>
+							))}
+							<h4>Acceptance</h4>
+							<p className="gw-small">{agreement.acceptance}</p>
+						</div>
+					</details>
+					<div className="gw-form__field" style={{ marginTop: "0.8rem" }}>
+						<label className="gw-form__check">
+							<input type="checkbox" checked={!!f.contract_accepted} onChange={(e) => set("contract_accepted", e.target.checked)} /> I have read and agree to the Driver and Vehicle Owner Affiliation Agreement (version {agreement.version}). *
+						</label>
+					</div>
+					{up({ k: "signed_contract", label: "Upload signed contract (only if GiftWako Travel has asked you for a signed copy)" })}
+				</div>
+			)}
+
+			{/* 7 — banking */}
+			{step === 6 && (
 				<div className="gw-survey__panel">
 					<h3>Payment and agreement</h3>
 					<div className="gw-form__grid" style={{ marginTop: "0.8rem" }}>
@@ -281,7 +339,7 @@ export default function DriverRegForm() {
 			<div className="gw-form__actions" style={{ marginTop: "1.2rem" }}>
 				<button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark" onClick={() => toast("Drafts are not saved yet — complete and submit.")}>Save draft</button>
 				{step > 0 && <button type="button" className="gw-btn gw-btn--outline gw-btn--outline-dark" onClick={back}>← Previous</button>}
-				{step < 5 ? (
+				{step < 6 ? (
 					<button type="button" className="gw-form__submit" onClick={next}>Next →</button>
 				) : (
 					<button type="button" className="gw-form__submit" disabled={status === "saving"} onClick={submit}>

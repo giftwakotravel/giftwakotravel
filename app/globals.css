@@ -1470,3 +1470,10 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-evgallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 1.5rem; }
 .gw-evgallery img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 12px; }
 @media (max-width: 760px) { .gw-evgallery { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- driver agreement ---------- */
+.gw-agreement { max-width: 820px; line-height: 1.65; }
+.gw-agreement h3 { margin: 1.4rem 0 0.5rem; }
+.gw-agreement__inline { border: 1px solid var(--gw-line); border-radius: 12px; padding: 0.8rem 1rem; margin-top: 0.8rem; }
+.gw-agreement__inline summary { font-weight: 700; cursor: pointer; }
+.gw-agreement__inline .gw-agreement__body { max-height: 320px; overflow: auto; margin-top: 0.6rem; }

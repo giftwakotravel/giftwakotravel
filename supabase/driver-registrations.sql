@@ -24,6 +24,9 @@ create table if not exists public.driver_registrations (
   -- step 6 banking
   account_holder text, bank_name text, account_type text, account_number text,
   branch_code text, bank_proof_url text,
+  -- step 6 driver agreement
+  contract_accepted boolean not null default false, contract_version text,
+  contract_accepted_at timestamptz, signed_contract_url text,
   created_at timestamptz not null default now()
 );
 
