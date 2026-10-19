@@ -7,6 +7,8 @@ import { toast } from "@/components/Toaster";
 import { S_DEPARTMENTS, S_DOCS, S_LEAVE, type Driver, type Guide, type Registration, type StaffMember } from "@/lib/staff-data";
 import { RoleOptions } from "@/lib/staff-roles";
 import { supabase } from "@/lib/supabase";
+import { DOC_TYPES } from "@/lib/driver-portal";
+import agreement from "@/data/driver-agreement.json";
 
 export default function StaffSectionsA({ section }: { section: StaffSection }) {
 	switch (section) {
@@ -331,121 +333,221 @@ function Employees() {
 
 /* ============================ DRIVERS ============================ */
 
-interface DriverReg {
-	id: number; status: string; full_name: string; surname: string; email: string; mobile: string;
-	town: string; province: string; licence_number: string; vehicle_make: string; vehicle_model: string;
-	vehicle_reg: string; vehicle_type: string; passenger_capacity: number | null; services: string[];
-	contract_accepted?: boolean; contract_version?: string | null; contract_accepted_at?: string | null;
-	signed_contract_url?: string | null;
-	created_at: string;
+interface DriverProfile {
+	user_id: string; status: string; full_name: string | null; surname: string | null;
+	email: string | null; phone: string | null; town: string | null;
+	submitted_at: string | null; rejection_reason: string | null; services: string[] | null;
 	[key: string]: unknown;
+}
+interface DriverDoc {
+	id: number; user_id: string; vehicle_id: number | null; doc_type: string;
+	file_url: string; file_name: string | null; expiry: string | null;
+	status: string; note: string | null;
 }
 
 function DriverRegQueue() {
 	const { confirm } = useStaff();
-	const [rows, setRows] = useState<DriverReg[]>([]);
-	const [sel, setSel] = useState<DriverReg | null>(null);
+	const [rows, setRows] = useState<DriverProfile[]>([]);
+	const [vehCount, setVehCount] = useState<Record<string, { n: number; reg: string }>>({});
+	const [contracts, setContracts] = useState<Record<string, { version: string; accepted_at: string } | null>>({});
+	const [sel, setSel] = useState<DriverProfile | null>(null);
+	const [vehicles, setVehicles] = useState<Record<string, unknown>[]>([]);
+	const [docs, setDocs] = useState<DriverDoc[]>([]);
+	const [selContract, setSelContract] = useState<Record<string, unknown> | null>(null);
+	const [rejectOpen, setRejectOpen] = useState(false);
+	const [reason, setReason] = useState("");
 	const [loading, setLoading] = useState(true);
 
 	const load = async () => {
 		const c = supabase();
 		if (!c) { setLoading(false); return; }
-		const { data } = await c.from("driver_registrations").select("*").order("created_at", { ascending: false });
-		setRows((data ?? []) as DriverReg[]);
+		const { data } = await c.from("driver_profiles").select("*").order("submitted_at", { ascending: false, nullsFirst: false });
+		setRows((data ?? []) as DriverProfile[]);
+		const { data: cts } = await c.from("driver_contracts").select("*").order("accepted_at", { ascending: false });
+		const map: Record<string, { version: string; accepted_at: string } | null> = {};
+		for (const ct of cts ?? []) if (!map[ct.user_id]) map[ct.user_id] = ct;
+		setContracts(map);
+		const { data: vs } = await c.from("driver_vehicles").select("user_id, reg");
+		const vm: Record<string, { n: number; reg: string }> = {};
+		for (const v of vs ?? []) {
+			if (!vm[v.user_id]) vm[v.user_id] = { n: 0, reg: v.reg ?? "" };
+			vm[v.user_id].n++;
+		}
+		setVehCount(vm);
 		setLoading(false);
 	};
 	useState(() => { void load(); });
 
-	const setStatus = async (r: DriverReg, st: string) => {
+	const openReview = async (r: DriverProfile) => {
+		setSel(r);
+		setRejectOpen(false);
+		setReason("");
+		const c = supabase();
+		if (!c) return;
+		const [v, d, ct] = await Promise.all([
+			c.from("driver_vehicles").select("*").eq("user_id", r.user_id),
+			c.from("driver_documents").select("*").eq("user_id", r.user_id),
+			c.from("driver_contracts").select("*").eq("user_id", r.user_id).order("accepted_at", { ascending: false }).limit(1),
+		]);
+		setVehicles(v.data ?? []);
+		setDocs((d.data ?? []) as DriverDoc[]);
+		setSelContract((ct.data ?? [])[0] ?? null);
+	};
+
+	const decide = async (r: DriverProfile, st: string, rej?: string) => {
 		const c = supabase();
 		if (!c) { toast("Not connected to the database"); return; }
-		const { error } = await c.from("driver_registrations").update({ status: st }).eq("id", r.id);
+		const { error } = await c.from("driver_profiles")
+			.update({ status: st, rejection_reason: rej ?? null, reviewed_at: new Date().toISOString() })
+			.eq("user_id", r.user_id);
 		if (error) { toast(`Update failed: ${error.message}`); return; }
-		setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, status: st } : x)));
-		setSel((s) => (s?.id === r.id ? { ...s, status: st } : s));
-		toast(`${r.full_name} ${r.surname} → ${st}`);
+		await c.from("driver_notifications").insert({
+			user_id: r.user_id, type: "decision",
+			title: `Application ${st.toLowerCase()}`,
+			body: st === "Approved" ? "Your driver application has been approved. Welcome aboard!"
+				: st === "Rejected" ? `Your application was rejected${rej ? `: ${rej}` : "."}`
+				: `Your driver account status changed to ${st}.`,
+		});
+		setRows((rs) => rs.map((x) => (x.user_id === r.user_id ? { ...x, status: st } : x)));
+		setSel((s) => (s?.user_id === r.user_id ? { ...s, status: st, rejection_reason: rej ?? null } : s));
+		setRejectOpen(false);
+		toast(`${r.full_name ?? ""} ${r.surname ?? ""} → ${st}`);
+	};
+
+	const setDocStatus = async (d: DriverDoc, st: string) => {
+		const c = supabase();
+		if (!c) return;
+		const { error } = await c.from("driver_documents").update({ status: st }).eq("id", d.id);
+		if (error) { toast(`Update failed: ${error.message}`); return; }
+		setDocs((ds) => ds.map((x) => (x.id === d.id ? { ...x, status: st } : x)));
 	};
 
 	const Doc = ({ label, url }: { label: string; url?: string | null }) =>
 		url ? <Dr k={label} v={<a href={url} target="_blank" rel="noreferrer">View ↗</a>} /> : <Dr k={label} v="—" />;
-	const Txt = ({ label, k }: { label: string; k: keyof DriverReg }) =>
+	const Txt = ({ label, k }: { label: string; k: keyof DriverProfile }) =>
 		<Dr k={label} v={sel ? String(sel[k] ?? "—") : "—"} />;
+
+	const vehLabel = (id: number | null) =>
+		id == null ? "—" : String(vehicles.find((v) => v.id === id)?.reg ?? id);
 
 	return (
 		<>
-			{loading ? <p className="gw-small">Loading registrations…</p> : (
+			{loading ? <p className="gw-small">Loading driver applications…</p> : (
 				<Table
 					cols={[
-						{ key: "n", label: "Applicant", render: (r: DriverReg) => <strong>{r.full_name} {r.surname}</strong>, sortKey: (r) => r.surname },
-						{ key: "v", label: "Vehicle", render: (r) => `${r.vehicle_make ?? ""} ${r.vehicle_model ?? ""} · ${r.vehicle_reg ?? ""}` },
+						{ key: "n", label: "Applicant", render: (r: DriverProfile) => <strong>{r.full_name} {r.surname}</strong>, sortKey: (r) => r.surname ?? "" },
+						{ key: "v", label: "Vehicle(s)", render: (r) => vehCount[r.user_id] ? `${vehCount[r.user_id].n} · ${vehCount[r.user_id].reg}` : "—" },
 						{ key: "t", label: "Town", render: (r) => r.town ?? "—" },
+						{ key: "sub", label: "Submitted", render: (r) => (r.submitted_at ? new Date(r.submitted_at).toLocaleDateString() : "—"), sortKey: (r) => r.submitted_at ?? "" },
 						{ key: "svc", label: "Services", render: (r) => (r.services ?? []).slice(0, 2).join(", ") + ((r.services ?? []).length > 2 ? "…" : "") },
-						{ key: "c", label: "Agreement", render: (r) => <Pill status={r.contract_accepted ? "Approved" : "Pending"} /> },
+						{ key: "c", label: "Agreement", render: (r) => <Pill status={contracts[r.user_id] ? "Approved" : "Pending"} /> },
 						{ key: "st", label: "Status", render: (r) => <Pill status={r.status} /> },
-						{ key: "a", label: "", render: (r) => <button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setSel(r)}>Review</button> },
+						{ key: "a", label: "", render: (r) => <button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => void openReview(r)}>Review</button> },
 					]}
 					rows={rows}
-					empty="No driver registrations yet."
+					empty="No driver applications yet."
 				/>
 			)}
 			{sel && (
-			<Drawer title={`${sel.full_name} ${sel.surname} — driver registration`} onClose={() => setSel(null)} wide>
-				{sel.status === "Pending" && (
-					<div className="gw-buttons" style={{ marginBottom: "1rem" }}>
-						<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => sel.contract_accepted ? void setStatus(sel, "Approved") : confirm({
+			<Drawer title={`${sel.full_name ?? ""} ${sel.surname ?? ""} — driver application`} onClose={() => setSel(null)} wide>
+				<div className="gw-buttons" style={{ marginBottom: "1rem" }}>
+					{(sel.status === "Pending" || sel.status === "Incomplete" || sel.status === "Rejected") && (
+						<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => selContract?.version === agreement.version ? void decide(sel, "Approved") : confirm({
 							title: "Agreement not accepted",
-							body: "This driver has not accepted the Affiliation Agreement. Approve anyway?",
+							body: "This driver has not accepted the current Affiliation Agreement. Approve anyway?",
 							okLabel: "Approve anyway",
-							action: () => void setStatus(sel, "Approved"),
+							action: () => void decide(sel, "Approved"),
 						})}>Approve</button>
-						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => void setStatus(sel, "Rejected")}>Reject</button>
+					)}
+					{sel.status !== "Rejected" && (
+						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setRejectOpen((o) => !o)}>Reject</button>
+					)}
+					{sel.status === "Approved" && (
+						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => confirm({
+							title: "Suspend driver?",
+							body: `Suspend ${sel.full_name ?? ""} ${sel.surname ?? ""}?`,
+							okLabel: "Suspend",
+							action: () => void decide(sel, "Suspended"),
+						})}>Suspend</button>
+					)}
+				</div>
+				{rejectOpen && (
+					<div className="gw-form__field" style={{ marginBottom: "1rem" }}>
+						<label className="gw-form__label">Rejection reason</label>
+						<textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} style={{ width: "100%", font: "inherit", padding: "0.5rem", border: "1px solid var(--gw-line)", borderRadius: 8 }} />
+						<div className="gw-buttons" style={{ marginTop: "0.4rem" }}>
+							<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => void decide(sel, "Rejected", reason || undefined)}>Confirm rejection</button>
+						</div>
 					</div>
 				)}
 				{(
 					<>
 						<h4>Personal</h4>
 						<div className="gw-dlist">
-							<Dr k="Contact" v={`${sel.mobile ?? ""} · ${sel.email ?? ""}`} />
+							<Dr k="Contact" v={`${sel.phone ?? ""} · ${sel.email ?? ""}`} />
 							<Txt label="WhatsApp" k="whatsapp" />
 							<Dr k="Address" v={`${sel.address ?? ""}, ${sel.town ?? ""}, ${sel.province ?? ""}`} />
 							<Txt label="SA ID" k="sa_id" /><Txt label="DOB" k="dob" />
-							<Doc label="ID document" url={sel.id_doc_url as string} />
-							<Doc label="Selfie" url={sel.selfie_url as string} />
+						</div>
+						<h4>Emergency</h4>
+						<div className="gw-dlist">
+							<Dr k="Contact" v={sel.emergency_name ? `${sel.emergency_name} · ${sel.emergency_phone ?? ""} · ${sel.emergency_relation ?? ""}` : "—"} />
 						</div>
 						<h4>Licence</h4>
 						<div className="gw-dlist">
 							<Dr k="Licence" v={`${sel.licence_number ?? ""} · ${sel.licence_code ?? ""} · exp ${sel.licence_expiry ?? "—"}`} />
 							<Dr k="PrDP" v={sel.prdp_number ? `${sel.prdp_number} · exp ${sel.prdp_expiry ?? "—"}` : "—"} />
-							<Doc label="Licence doc" url={sel.licence_doc_url as string} />
-							<Doc label="PrDP doc" url={sel.prdp_doc_url as string} />
 						</div>
-						<h4>Vehicle</h4>
-						<div className="gw-dlist">
-							<Dr k="Vehicle" v={`${sel.vehicle_year ?? ""} ${sel.vehicle_make ?? ""} ${sel.vehicle_model ?? ""} (${sel.vehicle_colour ?? ""})`} />
-							<Dr k="Registration" v={String(sel.vehicle_reg ?? "—")} />
-							<Dr k="Type" v={`${sel.vehicle_type ?? ""} · ${sel.passenger_capacity ?? "?"} pax`} />
-							<Doc label="Reg certificate" url={sel.reg_cert_url as string} />
-							<Doc label="Ownership" url={sel.ownership_url as string} />
-							<Doc label="Roadworthy" url={sel.roadworthy_url as string} />
-							<Doc label="Licence disc" url={sel.licence_disc_url as string} />
-							<Doc label="Insurance" url={sel.insurance_url as string} />
-							<Doc label="Operating licence" url={sel.operating_licence_url as string} />
-						</div>
+						<h4>Vehicles</h4>
+						{vehicles.length === 0 && <p className="gw-small">No vehicles added.</p>}
+						{vehicles.map((v) => (
+							<div className="gw-dlist" key={v.id as number} style={{ marginBottom: "0.8rem" }}>
+								<Dr k="Vehicle" v={`${v.year ?? ""} ${v.make ?? ""} ${v.model ?? ""} (${v.colour ?? ""})`} />
+								<Dr k="Registration" v={String(v.reg ?? "—")} />
+								<Dr k="Type" v={`${v.vehicle_type ?? ""} · ${v.capacity ?? "?"} pax`} />
+								<Dr k="Photos" v={(v.photo_urls as string[] | undefined)?.length
+									? (v.photo_urls as string[]).map((u, i) => <a key={u} href={u} target="_blank" rel="noreferrer" style={{ marginRight: "0.5rem" }}>Photo {i + 1} ↗</a>)
+									: "—"} />
+							</div>
+						))}
+						<h4>Documents</h4>
+						<Table
+							pageSize={15}
+							cols={[
+								{ key: "t", label: "Type", render: (d: DriverDoc) => DOC_TYPES.find((x) => x.key === d.doc_type)?.label ?? d.doc_type },
+								{ key: "v", label: "Vehicle", render: (d) => vehLabel(d.vehicle_id) },
+								{ key: "f", label: "File", render: (d) => <a href={d.file_url} target="_blank" rel="noreferrer">View ↗</a> },
+								{ key: "e", label: "Expiry", render: (d) => d.expiry ?? "—" },
+								{ key: "s", label: "Status", render: (d) => <Pill status={d.status} /> },
+								{
+									key: "a", label: "", render: (d) => (
+										<span className="gw-buttons" style={{ gap: "0.3rem" }}>
+											<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => void setDocStatus(d, "Verified")}>Verify</button>
+											<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => void setDocStatus(d, "Rejected")}>Reject</button>
+										</span>
+									),
+								},
+							]}
+							rows={docs}
+							empty="No documents uploaded."
+						/>
 						<h4>Affiliation Agreement</h4>
 						<div className="gw-dlist">
-							<Dr k="Accepted" v={sel.contract_accepted ? `Yes · v${sel.contract_version ?? "?"} · ${sel.contract_accepted_at ? new Date(sel.contract_accepted_at).toLocaleDateString() : "—"}` : "Not accepted"} />
-							<Doc label="Signed copy" url={sel.signed_contract_url} />
+							<Dr k="Accepted" v={selContract ? `Yes · v${String(selContract.version)} · ${new Date(String(selContract.accepted_at)).toLocaleDateString()}` : "Not accepted"} />
+							<Dr k="Signed as" v={String(selContract?.signature_name ?? "—")} />
+							{selContract?.signature_url ? (
+								<Dr k="Signature" v={<a href={String(selContract.signature_url)} target="_blank" rel="noreferrer"><img src={String(selContract.signature_url)} alt="Signature" style={{ maxWidth: 200, display: "block" }} /></a>} />
+							) : <Dr k="Signature" v="—" />}
+							<Doc label="Signed copy" url={selContract?.signed_file_url as string | undefined} />
 						</div>
 						<h4>Services & banking</h4>
 						<div className="gw-dlist">
 							<Dr k="Services" v={(sel.services ?? []).join(", ") || "—"} />
 							<Dr k="Area" v={`${sel.operating_province ?? ""} — ${sel.towns_served ?? ""}`} />
-							<Txt label="Pickups" k="pickup_locations" />
 							<Dr k="Pricing" v={String(sel.pricing ?? "—")} />
 							<Dr k="Days" v={((sel.available_days as string[] | undefined) ?? []).join(", ") || "—"} />
 							<Txt label="Hours" k="working_hours" />
 							<Dr k="Bank" v={sel.bank_name ? `${sel.bank_name} · ${sel.account_type ?? ""} · ${sel.account_holder ?? ""}` : "—"} />
-							<Doc label="Bank proof" url={sel.bank_proof_url as string} />
 						</div>
 					</>
 				)}
@@ -470,7 +572,7 @@ function Drivers() {
 			<>
 				<div className="gw-toolbar">
 					<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" onClick={() => setView("drivers")}>← Drivers</button>
-					<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-registration" target="_blank" rel="noreferrer">Open registration form ↗</a>
+					<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-portal" target="_blank" rel="noreferrer">Open driver portal ↗</a>
 				</div>
 				<DriverRegQueue />
 			</>
@@ -485,7 +587,7 @@ function Drivers() {
 			<SubTabs tabs={tabs} active={sub} onChange={setSub} counts={Object.fromEntries(tabs.map((t) => [t, t === "All" ? drivers.length : drivers.filter((d) => d.status === t).length]))} />
 			<div className="gw-toolbar"><SearchInput value={q} onChange={setQ} placeholder="Search drivers…" />
 				<button className="gw-btn gw-btn--gold gw-btn--small" onClick={() => setView("queue")}>Registration queue</button>
-				<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-registration" target="_blank" rel="noreferrer">Share link ↗</a>
+				<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-portal" target="_blank" rel="noreferrer">Share link ↗</a>
 			</div>
 			<Table
 				cols={[

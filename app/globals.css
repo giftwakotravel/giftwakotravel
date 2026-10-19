@@ -958,11 +958,11 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-table th { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 2px solid var(--gw-line); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gw-muted); }
 .gw-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--gw-line); }
 .gw-status { display: inline-block; border-radius: 999px; padding: 0.15em 0.7em; font-size: 0.75rem; font-weight: 700; white-space: nowrap; background: var(--gw-sand); color: var(--gw-muted); }
-.gw-status--live, .gw-status--confirmed, .gw-status--active, .gw-status--available, .gw-status--verified, .gw-status--present, .gw-status--approved, .gw-status--resolved, .gw-status--completed { background: #E7F4F1; color: #0A6E54; }
+.gw-status--live, .gw-status--confirmed, .gw-status--active, .gw-status--available, .gw-status--verified, .gw-status--present, .gw-status--approved, .gw-status--resolved, .gw-status--completed, .gw-status--paid { background: #E7F4F1; color: #0A6E54; }
 .gw-status--pending, .gw-status--new, .gw-status--open, .gw-status--expiring, .gw-status--scheduled, .gw-status--probation, .gw-status--late, .gw-status--normal { background: #FFF4E5; color: #8a5200; }
 .gw-status--cancelled, .gw-status--rejected, .gw-status--suspended, .gw-status--expired, .gw-status--absent, .gw-status--high { background: #FDECEA; color: #8A1C12; }
-.gw-status--on-trip, .gw-status--on-tour, .gw-status--in-use, .gw-status--in-progress, .gw-status--upcoming, .gw-status--published, .gw-status--reported { background: #E3EFFD; color: #155B9B; }
-.gw-status--unavailable, .gw-status--hidden, .gw-status--former, .gw-status--unassigned, .gw-status--draft, .gw-status--maintenance, .gw-status--incomplete, .gw-status--off, .gw-status--leave, .gw-status--on-leave, .gw-status--low { background: var(--gw-sand); color: var(--gw-muted); }
+.gw-status--on-trip, .gw-status--on-tour, .gw-status--in-use, .gw-status--in-progress, .gw-status--upcoming, .gw-status--published, .gw-status--reported, .gw-status--requested, .gw-status--assigned { background: #E3EFFD; color: #155B9B; }
+.gw-status--unavailable, .gw-status--hidden, .gw-status--former, .gw-status--unassigned, .gw-status--draft, .gw-status--maintenance, .gw-status--incomplete, .gw-status--off, .gw-status--leave, .gw-status--on-leave, .gw-status--low, .gw-status--closed { background: var(--gw-sand); color: var(--gw-muted); }
 .gw-denote { background: #FFF9EC; border: 1px dashed #E3B93F; border-radius: 12px; padding: 0.7rem 1rem; font-size: 0.85rem; color: #6B5310; margin-bottom: 1.5rem; }
 .gw-toast {
 	position: fixed;
