@@ -9,18 +9,19 @@ import { DriverProvider, useDriver } from "@/components/driver/ctx";
 import DriverSectionsA from "@/components/driver/sections-a";
 import DriverSectionsB from "@/components/driver/sections-b";
 import type { Section } from "@/lib/driver-portal";
+import { Bell, ChevronsLeft, ChevronsRight, LogOut, Menu, NAV_ICONS } from "@/components/driver/icons";
 
-const NAV: { key: Section; label: string; icon: string }[] = [
-	{ key: "dashboard", label: "Dashboard", icon: "🏠" },
-	{ key: "profile", label: "My Profile", icon: "👤" },
-	{ key: "vehicles", label: "My Vehicles", icon: "🚗" },
-	{ key: "documents", label: "My Documents", icon: "📄" },
-	{ key: "contract", label: "My Contract", icon: "📝" },
-	{ key: "jobs", label: "Available Jobs", icon: "💼" },
-	{ key: "trips", label: "My Trips", icon: "📅" },
-	{ key: "earnings", label: "Earnings", icon: "💰" },
-	{ key: "notifications", label: "Notifications", icon: "🔔" },
-	{ key: "settings", label: "Settings", icon: "⚙️" },
+const NAV: { key: Section; label: string }[] = [
+	{ key: "dashboard", label: "Dashboard" },
+	{ key: "profile", label: "My Profile" },
+	{ key: "vehicles", label: "My Vehicles" },
+	{ key: "documents", label: "My Documents" },
+	{ key: "contract", label: "My Contract" },
+	{ key: "jobs", label: "Available Jobs" },
+	{ key: "trips", label: "My Trips" },
+	{ key: "earnings", label: "Earnings" },
+	{ key: "notifications", label: "Notifications" },
+	{ key: "settings", label: "Settings" },
 ];
 
 export default function DriverPortal() {
@@ -92,17 +93,20 @@ function PortalShell({ user, section, setSection, signOut }: {
 					{!collapsed && <span>GiftWako Driver Portal</span>}
 				</div>
 				<nav aria-label="Portal sections">
-					{NAV.map((s) => (
-						<button key={s.key} className={section === s.key ? "is-active" : ""} onClick={() => go(s.key)} title={s.label}>
-							<span className="gw-admin__icn" aria-hidden="true">{s.icon}</span>
-							{!collapsed && <span>{s.label}</span>}
-							{s.key === "notifications" && unread > 0 && !collapsed && (
-								<span className="gw-admin__badge">{unread}</span>
-							)}
-						</button>
-					))}
+					{NAV.map((s) => {
+						const Icon = NAV_ICONS[s.key];
+						return (
+							<button key={s.key} className={section === s.key ? "is-active" : ""} onClick={() => go(s.key)} title={s.label}>
+								<span className="gw-admin__icn"><Icon /></span>
+								{!collapsed && <span>{s.label}</span>}
+								{s.key === "notifications" && unread > 0 && !collapsed && (
+									<span className="gw-admin__badge">{unread}</span>
+								)}
+							</button>
+						);
+					})}
 					<button onClick={() => void signOut()} title="Logout">
-						<span className="gw-admin__icn" aria-hidden="true">🚪</span>
+						<span className="gw-admin__icn"><LogOut /></span>
 						{!collapsed && <span>Logout</span>}
 					</button>
 				</nav>
@@ -111,7 +115,7 @@ function PortalShell({ user, section, setSection, signOut }: {
 
 			<div className="gw-admin__main">
 				<header className="gw-admin__top">
-					<button className="gw-admin__iconbtn" onClick={() => setMobileNav(true)} aria-label="Open menu">☰</button>
+					<button className="gw-admin__iconbtn" onClick={() => setMobileNav(true)} aria-label="Open menu"><Menu /></button>
 					<h1>{NAV.find((s) => s.key === section)?.label ?? ""}</h1>
 					<div className="gw-admin__topright">
 						<div className="gw-admin__menuwrap">
@@ -121,7 +125,7 @@ function PortalShell({ user, section, setSection, signOut }: {
 								aria-expanded={bellOpen}
 								onClick={() => { setBellOpen(!bellOpen); setProfileOpen(false); }}
 							>
-								🔔
+								<Bell />
 								{unread > 0 && <span className="gw-admin__dot">{unread}</span>}
 							</button>
 							{bellOpen && (
@@ -176,7 +180,7 @@ function PortalShell({ user, section, setSection, signOut }: {
 							onClick={() => setCollapsed(!collapsed)}
 							aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 						>
-							{collapsed ? "»" : "«"}
+							{collapsed ? <ChevronsRight /> : <ChevronsLeft />}
 						</button>
 					</div>
 				</header>

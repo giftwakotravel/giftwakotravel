@@ -1477,3 +1477,13 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-agreement__inline { border: 1px solid var(--gw-line); border-radius: 12px; padding: 0.8rem 1rem; margin-top: 0.8rem; }
 .gw-agreement__inline summary { font-weight: 700; cursor: pointer; }
 .gw-agreement__inline .gw-agreement__body { max-height: 320px; overflow: auto; margin-top: 0.6rem; }
+
+/* ---------- driver portal ---------- */
+.gw-driver .gw-admin__icn { display: inline-flex; align-items: center; justify-content: center; }
+.gw-admin__icn svg { width: 20px; height: 20px; display: block; }
+.gw-driver__status { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; border-left: 3px solid; padding-left: 0.6rem; margin: 0 0 0.8rem; }
+.gw-driver__status.is-incomplete { color: #B7791F; border-color: #B7791F; }
+.gw-driver__status.is-pending { color: #C05621; border-color: #C05621; }
+.gw-driver__status.is-rejected { color: #8A1C12; border-color: #8A1C12; }
+.gw-driver__status.is-approved { color: #0A6E54; border-color: #0A6E54; }
+.gw-driver__status.is-suspended { color: #333; border-color: #333; }

@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import {
 	cleanRow, completion, DAYS, DOC_TYPES, PRICING, SERVICES, VEHICLE_TYPES, type Section,
 } from "@/lib/driver-portal";
+import { AlertTriangle, Ban, Car, Check, CircleCheck, Clock, ExternalLink, X } from "@/components/driver/icons";
 
 export default function DriverSectionsA({ section }: { section: Section }) {
 	switch (section) {
@@ -59,11 +60,12 @@ function Dashboard() {
 			</div>
 
 			{status === "Incomplete" && (
-				<Panel title="🟡 Incomplete profile" sub={`Your profile is ${pct}% complete. Finish the checklist below to submit for approval.`}>
+				<Panel title="Incomplete profile" sub={`Your profile is ${pct}% complete. Finish the checklist below to submit for approval.`}>
+					<p className="gw-driver__status is-incomplete"><Clock size={18} /> Your profile is not yet submitted.</p>
 					<div className="gw-buttons">
 						{items.map((i) => (
 							<button key={i.label} className={`gw-filter__btn${i.done ? " is-active" : ""}`} onClick={() => go(i.section)}>
-								{i.done ? "✓ " : ""}{i.label}
+								{i.done && <Check size={14} />} {i.label}
 							</button>
 						))}
 					</div>
@@ -76,12 +78,14 @@ function Dashboard() {
 				</Panel>
 			)}
 			{status === "Pending" && (
-				<Panel title="🟠 Pending approval">
+				<Panel title="Pending approval">
+					<p className="gw-driver__status is-pending"><AlertTriangle size={18} /> Under review</p>
 					<p>Submitted {fdate(profile?.submitted_at)} — GiftWako Travel is reviewing your profile, documents and agreement acceptance.</p>
 				</Panel>
 			)}
 			{status === "Rejected" && (
-				<Panel title="🔴 Rejected — action required" sub={profile?.rejection_reason ? `Reason: ${profile.rejection_reason}` : undefined}>
+				<Panel title="Rejected — action required" sub={profile?.rejection_reason ? `Reason: ${profile.rejection_reason}` : undefined}>
+					<p className="gw-driver__status is-rejected"><X size={18} /> Action required</p>
 					<p>Review the reason above, update your details and resubmit.</p>
 					<div className="gw-buttons">
 						<button className="gw-btn gw-btn--gold" disabled={pct !== 100} onClick={() => void submit()}>Resubmit for approval</button>
@@ -89,12 +93,14 @@ function Dashboard() {
 				</Panel>
 			)}
 			{status === "Approved" && (
-				<Panel title="🟢 Approved">
+				<Panel title="Approved">
+					<p className="gw-driver__status is-approved"><CircleCheck size={18} /> Approved driver</p>
 					<p>You are an approved GiftWako driver. Watch Available Jobs and My Trips for bookings.</p>
 				</Panel>
 			)}
 			{status === "Suspended" && (
-				<Panel title="⚫ Suspended">
+				<Panel title="Suspended">
+					<p className="gw-driver__status is-suspended"><Ban size={18} /> Suspended</p>
 					<p>Your driver account is suspended. Contact GiftWako Travel on WhatsApp 070 617 8269.</p>
 				</Panel>
 			)}
@@ -449,7 +455,7 @@ function Documents() {
 				cols={[
 					{
 						key: "d", label: "Document", render: (t: (typeof DOC_TYPES)[number]) => (
-							<span>{t.label}{t.required ? " *" : ""}{t.vehicle ? " 🚗" : ""}</span>
+							<span>{t.label}{t.required ? " *" : ""}{t.vehicle && <> <Car size={14} style={{ verticalAlign: "-2px", display: "inline" }} /></>}</span>
 						),
 					},
 					{
@@ -475,8 +481,8 @@ function Documents() {
 							if (!d) return "—";
 							return (
 								<span>
-									<a href={d.file_url} target="_blank" rel="noreferrer">{d.file_name ?? "View ↗"}</a>
-									{d.expiry && <span className="gw-small"> · exp {d.expiry}{expSoon(d.expiry) ? " ⚠️" : ""}</span>}
+									<a href={d.file_url} target="_blank" rel="noreferrer">{d.file_name ?? "View"} <ExternalLink size={13} style={{ verticalAlign: "-2px", display: "inline" }} /></a>
+									{d.expiry && <span className="gw-small"> · exp {d.expiry}{expSoon(d.expiry) && <> <AlertTriangle size={13} style={{ verticalAlign: "-2px", display: "inline", color: "#B7791F" }} /></>}</span>}
 									{" "}<Pill status={d.status} />
 									{d.note && <span className="gw-small"> · {d.note}</span>}
 								</span>

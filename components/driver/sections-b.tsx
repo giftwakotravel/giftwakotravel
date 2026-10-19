@@ -7,6 +7,7 @@ import { toast } from "@/components/Toaster";
 import { supabase } from "@/lib/supabase";
 import type { Section } from "@/lib/driver-portal";
 import agreement from "@/data/driver-agreement.json";
+import { CircleCheck, Download, ExternalLink, Upload } from "@/components/driver/icons";
 
 export default function DriverSectionsB({ section }: { section: Section }) {
 	switch (section) {
@@ -128,8 +129,8 @@ function Contract() {
 				sub={`Version ${agreement.version}`}
 				actions={(
 					<div className="gw-buttons">
-						<a className="gw-btn gw-btn--gold gw-btn--small" href="/docs/driver-service-agreement.pdf" target="_blank" rel="noreferrer">View contract (PDF) ↗</a>
-						<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-agreement" target="_blank" rel="noreferrer">Read online ↗</a>
+						<a className="gw-btn gw-btn--gold gw-btn--small" href="/docs/driver-service-agreement.pdf" target="_blank" rel="noreferrer"><Download size={15} /> View contract (PDF)</a>
+						<a className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/driver-agreement" target="_blank" rel="noreferrer"><ExternalLink size={15} /> Read online</a>
 					</div>
 				)}
 			>
@@ -153,15 +154,15 @@ function Contract() {
 			{contract?.version === agreement.version ? (
 				<Panel title="Accepted">
 					<p style={{ color: "#0A6E54", fontWeight: 700 }}>
-						✓ Accepted on {fdate(contract.accepted_at)} (v{contract.version})
+						<CircleCheck size={16} style={{ verticalAlign: "-3px", display: "inline" }} /> Accepted on {fdate(contract.accepted_at)} (v{contract.version})
 					</p>
 					<div className="gw-dlist">
 						<Dr k="Signed as" v={contract.signature_name ?? "—"} />
 						{contract.signature_url && (
-							<Dr k="Signature" v={<a href={contract.signature_url} target="_blank" rel="noreferrer">View ↗</a>} />
+							<Dr k="Signature" v={<a href={contract.signature_url} target="_blank" rel="noreferrer">View <ExternalLink size={13} style={{ verticalAlign: "-2px", display: "inline" }} /></a>} />
 						)}
 						{contract.signed_file_url && (
-							<Dr k="Signed copy" v={<a href={contract.signed_file_url} target="_blank" rel="noreferrer">View ↗</a>} />
+							<Dr k="Signed copy" v={<a href={contract.signed_file_url} target="_blank" rel="noreferrer">View <ExternalLink size={13} style={{ verticalAlign: "-2px", display: "inline" }} /></a>} />
 						)}
 					</div>
 					<h4 style={{ marginTop: "1rem" }}>Upload signed copy (optional)</h4>
@@ -169,7 +170,7 @@ function Contract() {
 					<div className="gw-buttons" style={{ alignItems: "center" }}>
 						<input type="file" accept="image/*,.pdf" onChange={(e) => setSignedFile(e.target.files?.[0] ?? null)} />
 						<button className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" disabled={!signedFile || busy} onClick={() => void uploadSigned()}>
-							{busy ? "Uploading…" : "Upload signed copy"}
+							<Upload size={14} /> {busy ? "Uploading…" : "Upload signed copy"}
 						</button>
 					</div>
 				</Panel>
