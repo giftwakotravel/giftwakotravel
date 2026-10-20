@@ -21,15 +21,14 @@ export const SITE = {
 
 export const NAV = [
 	{ href: "/", label: "Home" },
-	{ href: "/tours-and-services/", label: "Tours & services" },
-	{ href: "/book/", label: "Book online" },
+	{ href: "/book/", label: "Tours & services" },
 	{ href: "/about/", label: "About" },
 	{ href: "/contact/", label: "Contact" },
 	{ href: "/account/", label: "My account" },
 ];
 
 export const FOOTER_EXPLORE = [
-	{ href: "/tours-and-services/", label: "Tours & services" },
+	{ href: "/book/", label: "Tours & services" },
 	{ href: "/plan-a-trip/", label: "Plan a trip" },
 	{ href: "/driver-portal/", label: "Drive with us" },
 	{ href: "/about/", label: "About us" },

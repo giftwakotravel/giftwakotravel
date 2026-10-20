@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ACCOM_TYPES, SERVICE_OPTIONS, todayISO, type ServiceKey } from "@/lib/booking";
@@ -28,6 +29,9 @@ export default function ServiceSelect() {
 
 	return (
 		<div className="gw-survey">
+			<p className="gw-small" style={{ marginBottom: "1rem" }}>
+				Prefer to tell us what you need? <Link href="/plan-a-trip/">Request a custom quote →</Link>
+			</p>
 			<div className="gw-survey__panel gw-survey__cards">
 				{SERVICE_OPTIONS.map((s) => (
 					<button

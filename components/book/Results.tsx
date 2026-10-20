@@ -57,6 +57,26 @@ export default function Results() {
 	useEffect(() => { void load(); }, [load]);
 
 	const back = `/book/?service=${q.service}${q.from ? `&from=${q.from}` : ""}${q.to ? `&to=${q.to}` : ""}&pax=${q.pax}`;
+
+	const QUOTE_TYPE: Record<string, string> = {
+		tours: "City tour", getaways: "Holiday package", transport: "Airport transfer",
+		accommodation: "Accommodation only", complete: "Holiday package", airways: "Other",
+		groups: "Other", events: "Other",
+	};
+	const quoteHref = (s: string) =>
+		`/plan-a-trip/?trip_type=${encodeURIComponent(QUOTE_TYPE[s] ?? "Other")}${q.from ? `&departure_date=${q.from}` : ""}${q.to ? `&return_date=${q.to}` : ""}&adults=${q.pax}`;
+
+	const CustomCTA = ({ s }: { s: string }) => (
+		<div className="gw-book__card gw-book__card--cta" style={{ marginTop: "1rem" }}>
+			<div className="gw-book__card-body">
+				<h3>Need something different?</h3>
+				<p className="gw-book__sub">Tell us what you need and we will put together a written quote.</p>
+				<div className="gw-book__card-foot">
+					<Link className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href={quoteHref(s)}>Request a custom quote</Link>
+				</div>
+			</div>
+		</div>
+	);
 	const seeAll = (s: string) => {
 		const p = new URLSearchParams(params.toString());
 		p.set("service", s);
@@ -137,10 +157,14 @@ export default function Results() {
 								</>
 							)}
 							{data.transport.items.length + (data.transport.also?.length ?? 0) === 0 && (
-								<Empty text="No transport available at the moment. Please check again later." />
+								<>
+									<Empty text="No transport available at the moment. Please check again later." />
+									{q.service !== "all" && <CustomCTA s="transport" />}
+								</>
 							)}
 						</>
 					)}
+					{q.service !== "all" && (data.transport?.items.length ?? 0) + (data.transport?.also?.length ?? 0) > 0 && <CustomCTA s="transport" />}
 				</Section>
 			)}
 
@@ -148,7 +172,10 @@ export default function Results() {
 				<Section id="accommodation" label="Accommodation">
 					{!data.accommodation ? <p className="gw-small">Checking availability…</p>
 						: data.accommodation.items.length === 0 ? (
-							<Empty text={`No ${q.type ?? "accommodation"} available for those dates. Try different dates or another accommodation type.`} />
+							<>
+								<Empty text={`No ${q.type ?? "accommodation"} available for those dates. Try different dates or another accommodation type.`} />
+								{q.service !== "all" && <CustomCTA s="accommodation" />}
+							</>
 						) : (
 							<div className="gw-book__grid">
 								{data.accommodation.items.map((p: R) => (
@@ -169,13 +196,19 @@ export default function Results() {
 								))}
 							</div>
 						)}
+					{q.service !== "all" && (data.accommodation?.items.length ?? 0) > 0 && <CustomCTA s="accommodation" />}
 				</Section>
 			)}
 
 			{services.includes("events") && (
 				<Section id="events" label="Events">
 					{!data.events ? <p className="gw-small">Checking availability…</p>
-						: data.events.items.length === 0 ? <Empty text="No upcoming events right now — check back soon." /> : (
+						: data.events.items.length === 0 ? (
+							<>
+								<Empty text="No upcoming events right now — check back soon." />
+								{q.service !== "all" && <CustomCTA s="events" />}
+							</>
+						) : (
 							<div className="gw-book__grid">
 								{data.events.items.map((ev: R) => {
 									const minTicket = (ev.tickets ?? []).map((t: R) => t.price).filter((n: number | null) => n != null);
@@ -203,13 +236,19 @@ export default function Results() {
 								})}
 							</div>
 						)}
+					{q.service !== "all" && (data.events?.items.length ?? 0) > 0 && <CustomCTA s="events" />}
 				</Section>
 			)}
 
 			{(["tours", "getaways", "complete", "groups"] as const).filter((s) => services.includes(s)).map((cat) => (
 				<Section key={cat} id={cat} label={SERVICE_OPTIONS.find((s) => s.key === cat)!.label}>
 					{!data[cat] ? <p className="gw-small">Checking availability…</p>
-						: data[cat].items.length === 0 ? <Empty text={`No ${SERVICE_OPTIONS.find((s) => s.key === cat)!.label.toLowerCase()} available for those dates.`} /> : (
+						: data[cat].items.length === 0 ? (
+							<>
+								<Empty text={`No ${SERVICE_OPTIONS.find((s) => s.key === cat)!.label.toLowerCase()} available for those dates.`} />
+								{q.service !== "all" && <CustomCTA s={cat} />}
+							</>
+						) : (
 							<div className="gw-book__grid">
 								{data[cat].items.map((p: R) => {
 									const matchDate = (p.dates ?? []).find((d: string) => !q.from || (d >= q.from && d <= (q.to || q.from)));
@@ -237,17 +276,7 @@ export default function Results() {
 								})}
 							</div>
 						)}
-					{cat === "groups" && (
-						<div className="gw-book__card gw-book__card--cta" style={{ marginTop: "1rem" }}>
-							<div className="gw-book__card-body">
-								<h3>Need a custom group trip?</h3>
-								<p className="gw-book__sub">Churches, schools, stokvels and companies — one quote for the whole group.</p>
-								<div className="gw-book__card-foot">
-									<Link className="gw-btn gw-btn--outline gw-btn--outline-dark gw-btn--small" href="/tours-and-services/">Request a group quote</Link>
-								</div>
-							</div>
-						</div>
-					)}
+					{q.service !== "all" && (data[cat]?.items.length ?? 0) > 0 && <CustomCTA s={cat} />}
 				</Section>
 			))}
 
@@ -266,6 +295,8 @@ export default function Results() {
 					</div>
 				</Section>
 			)}
+
+			{q.service === "all" && <CustomCTA s="all" />}
 
 			{booking && (
 				<BookingForm

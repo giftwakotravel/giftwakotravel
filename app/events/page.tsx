@@ -25,7 +25,7 @@ export default function Events() {
 						label: "Ask on WhatsApp",
 						href: "https://wa.me/27706178269?text=Hi%20GiftWako%2C%20I%20would%20like%20to%20ask%20about%20an%20event",
 					}}
-					back={{ label: "Back to all tours & services", href: "/tours-and-services/" }}
+					back={{ label: "Back to all tours & services", href: "/book/" }}
 				/>
 			</PageBand>
 

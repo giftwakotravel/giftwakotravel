@@ -58,7 +58,7 @@ export default function ServicePageView({ page }: { page: ServicePage }) {
 				<BandButtons
 					primary={{ label: page.ctaLabel, href: page.ctaHref }}
 					outline={{ label: "Ask on WhatsApp", href: waLink(page.waText) }}
-					back={{ label: "Back to all tours & services", href: "/tours-and-services/" }}
+					back={{ label: "Back to all tours & services", href: "/book/" }}
 				/>
 			</PageBand>
 

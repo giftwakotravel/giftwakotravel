@@ -4,7 +4,7 @@ import PageBand, { BandButtons } from "@/components/PageBand";
 import ServiceSelect from "@/components/book/ServiceSelect";
 
 export const metadata: Metadata = {
-	title: "Book a service",
+	title: "Tours & services — book online",
 	description: "Book transport, accommodation, trips, events and more with GiftWako Travel — check availability online.",
 };
 

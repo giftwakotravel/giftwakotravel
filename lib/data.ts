@@ -277,7 +277,7 @@ export const SERVICE_PAGES: ServicePage[] = [
 		title: "Group day trips and tours",
 		lead: "Scheduled trips with set dates and a price per person. Reserve your seat with a deposit and pay the balance before departure.",
 		ctaLabel: "See all tours & services",
-		ctaHref: "/tours-and-services/",
+		ctaHref: "/book/",
 		waText: "Hi GiftWako, I am interested in a group day trip",
 		heroImage: "/images/complete-trip.jpg",
 		heroAlt: "Group of hikers on a GiftWako Travel trip",
