@@ -9,6 +9,7 @@ import OpsSections from "@/components/admin/sections-ops";
 import SysSections from "@/components/admin/sections-sys";
 import { StaffProvider, STAFF_SECTIONS, type StaffSection } from "@/components/staff/ctx";
 import RequestsSections from "@/components/admin/sections-requests";
+import BookingSections, { usePendingBookingCount } from "@/components/admin/sections-booking";
 import ContentSections from "@/components/admin/sections-content";
 import StaffSectionsA from "@/components/staff/sections-staff-a";
 import StaffSectionsB from "@/components/staff/sections-staff-b";
@@ -23,6 +24,7 @@ export type Section =
 	| "overview" | "properties" | "approvals" | "owners" | "customers" | "bookings"
 	| "finance" | "reviews" | "destinations" | "promos" | "support" | "notifications"
 	| "reports" | "account" | "settings" | "trip-requests" | "events"
+	| "service-bookings" | "packages" | "transport-rates"
 	| StaffSection;
 
 export const SECTIONS: { key: Section; label: string; icon: string }[] = [
@@ -32,6 +34,9 @@ export const SECTIONS: { key: Section; label: string; icon: string }[] = [
 	{ key: "owners", label: "Property Owners", icon: "♛" },
 	{ key: "customers", label: "Customers", icon: "☺" },
 	{ key: "bookings", label: "Bookings", icon: "◔" },
+	{ key: "service-bookings", label: "Online Bookings", icon: "◔" },
+	{ key: "packages", label: "Packages", icon: "▣" },
+	{ key: "transport-rates", label: "Transport Rates", icon: "R" },
 	{ key: "trip-requests", label: "Trip Requests", icon: "✈" },
 	{ key: "finance", label: "Revenue & Finance", icon: "R" },
 	{ key: "reviews", label: "Reviews & Ratings", icon: "★" },
@@ -113,6 +118,8 @@ export default function AdminDash() {
 	const [tickets, setTickets] = useState(D_TICKETS);
 	const [notifs, setNotifs] = useState(D_NOTIFS);
 
+	const pendingOnline = usePendingBookingCount();
+
 	const go = (s: Section) => {
 		setSection(s);
 		setMobileNav(false);
@@ -181,6 +188,9 @@ export default function AdminDash() {
 								{!collapsed && <span>{s.label}</span>}
 								{s.key === "approvals" && !collapsed && (
 									<span className="gw-admin__badge">{properties.filter((p) => p.status === "Pending").length}</span>
+								)}
+								{s.key === "service-bookings" && !collapsed && pendingOnline > 0 && (
+									<span className="gw-admin__badge">{pendingOnline}</span>
 								)}
 							</button>
 						))}
@@ -300,6 +310,7 @@ export default function AdminDash() {
 								<OpsSections section={section} />
 								<SysSections section={section} />
 								<RequestsSections section={section} />
+								<BookingSections section={section} />
 								<ContentSections section={section} />
 							</>
 						)}

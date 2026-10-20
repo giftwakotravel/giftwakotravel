@@ -22,6 +22,7 @@ export const SITE = {
 export const NAV = [
 	{ href: "/", label: "Home" },
 	{ href: "/tours-and-services/", label: "Tours & services" },
+	{ href: "/book/", label: "Book online" },
 	{ href: "/about/", label: "About" },
 	{ href: "/contact/", label: "Contact" },
 	{ href: "/account/", label: "My account" },

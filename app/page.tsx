@@ -23,8 +23,8 @@ export default function Home() {
 							you would like to go and we will put it together with a clear quote.
 						</p>
 						<div className="gw-buttons">
-							<Link className="gw-btn gw-btn--gold" href="/tours-and-services/">
-								Book Now
+							<Link className="gw-btn gw-btn--gold" href="/book/">
+								Book online
 							</Link>
 							<Link className="gw-btn gw-btn--outline" href="/plan-a-trip/">
 								Plan your trip

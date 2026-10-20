@@ -1487,3 +1487,22 @@ a.gw-brand:hover .gw-brand__text { color: var(--gw-sunset); }
 .gw-driver__status.is-rejected { color: #8A1C12; border-color: #8A1C12; }
 .gw-driver__status.is-approved { color: #0A6E54; border-color: #0A6E54; }
 .gw-driver__status.is-suspended { color: #333; border-color: #333; }
+
+/* ---------- booking flow ---------- */
+.gw-book__bar { position: sticky; top: 0; z-index: 30; background: #fff; border: 1px solid var(--gw-line); border-radius: 12px; padding: 0.7rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.6rem; box-shadow: 0 4px 16px rgba(11,29,58,0.06); }
+.gw-book__sec { margin-bottom: 2.4rem; }
+.gw-book__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+@media (max-width: 980px) { .gw-book__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .gw-book__grid { grid-template-columns: 1fr; } }
+.gw-book__card { background: #fff; border: 1px solid var(--gw-line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.gw-book__card img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+.gw-book__card--cta { border-style: dashed; }
+.gw-book__card-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+.gw-book__card-body h3 { margin: 0; font-size: 1.05rem; }
+.gw-book__sub { margin: 0; font-size: 0.86rem; color: var(--gw-muted); }
+.gw-book__chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.gw-book__chips > span, .gw-book__chips > * { background: var(--gw-sand); border-radius: 999px; padding: 0.15em 0.7em; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3em; }
+.gw-book__chips .is-hot { background: var(--gw-gold); color: #fff; }
+.gw-book__price { margin: 0; font-weight: 800; color: var(--gw-ocean-dark); }
+.gw-book__card-foot { margin-top: auto; padding-top: 0.6rem; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.gw-book__empty { background: #fff; border: 1px dashed var(--gw-line); border-radius: 12px; padding: 1.6rem; text-align: center; color: var(--gw-muted); }

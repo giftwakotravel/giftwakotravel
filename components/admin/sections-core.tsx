@@ -8,6 +8,7 @@ import {
 	type AdminOwner, type AdminProperty,
 } from "@/lib/admin-data";
 import { toast } from "@/components/Toaster";
+import { usePendingBookingCount } from "@/components/admin/sections-booking";
 
 export default function CoreSections({ section }: { section: Section }) {
 	const ctx = useAdmin();
@@ -40,6 +41,8 @@ function Overview() {
 		{ label: "Cancelled", value: bookings.filter((b) => b.status === "Cancelled").length },
 		{ label: "Demo revenue", value: fmtR(bookings.reduce((s, b) => s + b.total, 0)) },
 	];
+	const pendingOnline = usePendingBookingCount();
+	stats.splice(7, 0, { label: "Online bookings pending", value: pendingOnline });
 
 	return (
 		<>
